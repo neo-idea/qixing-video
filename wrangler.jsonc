@@ -8,5 +8,8 @@
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
-  }
+  },
+  "routes": [
+    { "pattern": "qixing-video.wangyitu.tech", "custom_domain": true }
+  ]
 }
