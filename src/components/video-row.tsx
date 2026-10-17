@@ -13,12 +13,12 @@ export function VideoRow({ title, subtitle, more = "/", list }: { title: string;
   if (!list.length) return null;
 
   return (
-    <section className="mt-8 sm:mt-10 lg:mt-12">
+    <section className="mt-10 sm:mt-12 lg:mt-14">
       <div className="mb-4 flex items-end justify-between gap-3 sm:gap-4">
         <div>
           <Eyebrow>Featured</Eyebrow>
-          <h2 className="flex items-center gap-2.5 text-lg font-black tracking-tight text-white sm:text-xl">
-            <span className="h-5 w-[3px] rounded-full bg-gradient-to-b from-cinema-brand-soft to-cinema-brand-strong sm:h-6" />
+          <h2 className="flex items-center gap-3 text-lg font-black tracking-tight text-white sm:text-xl">
+            <span className="h-6 w-1 rounded-full bg-gradient-to-b from-cinema-brand-soft to-cinema-brand-strong shadow-brand-glow" />
             {title}
           </h2>
           {subtitle ? <p className="mt-1 line-clamp-1 pl-[13px] text-[11px] text-cinema-subtle sm:pl-[15px] sm:text-xs">{subtitle}</p> : null}
@@ -34,7 +34,7 @@ export function VideoRow({ title, subtitle, more = "/", list }: { title: string;
         </div>
       </div>
       <div className="relative">
-        <div ref={scroller} className="no-scrollbar -mx-3 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth px-3 pb-2 sm:-mx-4 sm:gap-4 sm:px-4 lg:mx-0 lg:px-0">
+        <div ref={scroller} className="no-scrollbar -mx-3 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth px-3 pb-3 sm:-mx-4 sm:gap-4 sm:px-4 lg:mx-0 lg:px-0">
           {list.map((v, index) => (
             <div key={`${v.vod_id}-${index}`} className="w-[40vw] shrink-0 snap-start sm:w-[30vw] md:w-[23vw] lg:w-[172px] xl:w-[194px] 2xl:w-[210px]">
               <VideoCard item={v} />

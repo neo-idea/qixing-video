@@ -13,6 +13,7 @@ export function DetailClient({ id, site }: { id: string; site?: string }) {
   const [detail, setDetail] = useState<VodDetail | null>(null);
   const [error, setError] = useState("");
   const [sources, setSources] = useState<{ site: string; name: string; item: VodItem }[]>([]);
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     if (!key) return;
@@ -50,9 +51,18 @@ export function DetailClient({ id, site }: { id: string; site?: string }) {
 
   if (cfgLoading || !detail) {
     return (
-      <div className="grid place-items-center py-28 sm:py-44">
-        <div className="h-12 w-12 animate-spin rounded-full border-2 border-white/10 border-t-cinema-brand" />
-        <p className="mt-5 text-xs text-cinema-subtle">正在读取影片详情…</p>
+      <div className="space-y-5">
+        <div className="grid gap-4 rounded-3xl border border-white/8 bg-white/4 p-4 sm:grid-cols-[136px_1fr] sm:p-6">
+          <div className="aspect-[2/3] animate-pulse rounded-2xl bg-white/6" />
+          <div className="space-y-4 py-2">
+            <div className="h-3 w-24 animate-pulse rounded-full bg-white/6" />
+            <div className="h-8 w-4/5 animate-pulse rounded-xl bg-white/6" />
+            <div className="h-3 w-full animate-pulse rounded-full bg-white/6" />
+            <div className="h-3 w-2/3 animate-pulse rounded-full bg-white/6" />
+            <div className="h-11 w-40 animate-pulse rounded-full bg-white/6" />
+          </div>
+        </div>
+        <p className="text-center text-xs text-cinema-subtle">正在读取影片详情…</p>
       </div>
     );
   }
@@ -61,34 +71,50 @@ export function DetailClient({ id, site }: { id: string; site?: string }) {
   return (
     <>
       <section className="relative -mx-3 -mt-4 overflow-hidden px-3 pb-8 pt-6 sm:-mx-4 sm:-mt-6 sm:px-4 sm:pb-10 sm:pt-10 lg:-mx-8 lg:px-8 lg:pt-16">
-        <div aria-hidden className="absolute inset-0 opacity-65" style={{ background: `radial-gradient(90% 100% at 75% 0%, ${detail.gradient[1]}, transparent 65%)` }} />
-        <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-cinema-page/45 via-cinema-page/85 to-cinema-page" />
+        <div aria-hidden className="absolute inset-0 opacity-70" style={{ background: `radial-gradient(90% 100% at 75% 0%, ${detail.gradient[1]}, transparent 65%)` }} />
+        <div aria-hidden className="absolute -right-8 top-4 select-none text-[180px] leading-none opacity-[0.08] blur-[2px] sm:text-[340px]">{detail.vod_pic}</div>
+        <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-cinema-page/45 via-cinema-page/88 to-cinema-page" />
         <div className="relative mx-auto flex max-w-[1480px] flex-row gap-4 md:gap-8">
-          <div className="w-[104px] shrink-0 overflow-hidden rounded-xl ring-1 ring-white/15 cinematic-shadow sm:w-[136px] md:w-[180px] md:rounded-2xl lg:w-[236px]">
+          <div className="relative w-[104px] shrink-0 sm:w-[136px] md:w-[180px] lg:w-[236px]">
+            <div className="absolute -inset-3 rounded-[28px] bg-cinema-brand/10 opacity-0 blur-2xl md:opacity-100" />
+            <div className="relative overflow-hidden rounded-xl ring-1 ring-white/15 cinematic-shadow sm:w-full md:rounded-3xl">
             <Poster item={detail} compact />
+            </div>
+            <div className="absolute -bottom-3 left-1/2 hidden -translate-x-1/2 rounded-full border border-white/10 bg-black/80 px-3 py-1 text-[10px] font-semibold text-cinema-brand-soft backdrop-blur md:block">
+              {detail.vod_remarks}
+            </div>
           </div>
           <div className="min-w-0 flex-1 self-center pt-0 md:self-auto md:pt-1">
             <div className="mb-3 flex flex-wrap gap-1.5 text-xs sm:mb-4 sm:gap-2">
-              <Chip tone="brand" size="sm" className="rounded-sm font-black">{detail.vod_score}</Chip>
-              <Chip size="sm" className="rounded-sm">{detail.year}</Chip>
-              <Chip size="sm" className="rounded-sm">{detail.area}</Chip>
-              <Chip size="sm" className="rounded-sm">{detail.category}</Chip>
-              <Chip tone="success" size="sm" className="rounded-sm">
+              <Chip tone="brand" size="sm" className="font-black">{detail.vod_score}</Chip>
+              <Chip size="sm">{detail.year}</Chip>
+              <Chip size="sm">{detail.area}</Chip>
+              <Chip size="sm">{detail.category}</Chip>
+              <Chip tone="success" size="sm">
                 源: {config?.sites.find((source) => source.key === key)?.name ?? key}
               </Chip>
             </div>
-            <h1 className="mb-3 line-clamp-2 text-2xl font-black leading-tight tracking-tight text-white sm:mb-5 sm:text-4xl lg:text-6xl">{detail.vod_name}</h1>
-            <dl className="mb-4 hidden gap-2 text-sm text-cinema-muted md:mb-6 md:grid md:grid-cols-2">
-              <div><dt className="inline text-cinema-subtle">导演：</dt><dd className="inline text-cinema-muted">{detail.director}</dd></div>
-              <div><dt className="inline text-cinema-subtle">主演：</dt><dd className="inline text-cinema-muted">{detail.actors}</dd></div>
+            <h1 className="mb-3 line-clamp-2 bg-gradient-to-r from-white via-white to-white/70 bg-clip-text text-2xl font-black leading-tight tracking-tight text-transparent sm:mb-5 sm:text-4xl lg:text-6xl">{detail.vod_name}</h1>
+            <dl className="mb-4 hidden gap-2 md:mb-6 md:grid md:grid-cols-2">
+              <div className="rounded-2xl border border-white/8 bg-black/25 p-3 backdrop-blur">
+                <dt className="text-[10px] font-semibold uppercase tracking-widest text-cinema-subtle">Director</dt>
+                <dd className="mt-1 line-clamp-2 text-sm text-cinema-muted">{detail.director || "暂无资料"}</dd>
+              </div>
+              <div className="rounded-2xl border border-white/8 bg-black/25 p-3 backdrop-blur">
+                <dt className="text-[10px] font-semibold uppercase tracking-widest text-cinema-subtle">Starring</dt>
+                <dd className="mt-1 line-clamp-2 text-sm text-cinema-muted">{detail.actors || "暂无资料"}</dd>
+              </div>
             </dl>
-            <p className="mb-5 line-clamp-3 max-w-3xl text-xs leading-6 text-cinema-muted sm:mb-7 sm:text-sm sm:leading-7">{detail.content}</p>
+            <p className={`mb-4 max-w-3xl text-xs leading-6 text-cinema-muted sm:text-sm sm:leading-7 ${expanded ? "" : "line-clamp-3"}`}>{detail.content}</p>
+            <button onClick={() => setExpanded((value) => !value)} className="mb-5 h-11 rounded-full px-4 text-[11px] font-semibold text-cinema-brand-soft transition hover:bg-white/6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft sm:mb-7">
+              {expanded ? "收起简介" : "展开完整简介"}
+            </button>
             <div className="flex flex-wrap gap-2.5 sm:gap-3">
               <LinkButton href={`/play/${detail.vod_id}/0-0?site=${key}`} size="lg" className="flex-1 sm:flex-none">
                 <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor"><path d="M8 5.14v13.72a1 1 0 0 0 1.5.86l11-6.86a1 1 0 0 0 0-1.72l-11-6.86a1 1 0 0 0-1.5.86Z"/></svg>
                 立即播放
               </LinkButton>
-              <Chip size="lg" className="min-w-0 flex-1 justify-center sm:flex-none sm:px-6">{detail.vod_remarks}</Chip>
+              <Chip size="lg" className="min-w-0 flex-1 justify-center sm:hidden">{detail.vod_remarks}</Chip>
             </div>
           </div>
         </div>
@@ -98,7 +124,7 @@ export function DetailClient({ id, site }: { id: string; site?: string }) {
         <div className="space-y-5">
           {detail.vod_play_from.map((from, sourceIndex) => (
             <Panel key={from} className="p-4 sm:p-5">
-              <div className="mb-4 flex items-center justify-between">
+              <div className="mb-4 flex items-center justify-between gap-3 border-b border-white/6 pb-4">
                 <div>
                   <Eyebrow>Play List</Eyebrow>
                   <h2 className="mt-1.5 text-lg font-black text-white">{from}</h2>
@@ -110,7 +136,7 @@ export function DetailClient({ id, site }: { id: string; site?: string }) {
                   <Link
                     key={`${episode.name}-${episodeIndex}`}
                     href={`/play/${detail.vod_id}/${sourceIndex}-${episodeIndex}?site=${key}`}
-                    className="group relative rounded-xl border border-white/8 bg-white/4 px-3 py-3 text-center text-xs text-cinema-muted transition hover:-translate-y-0.5 hover:border-cinema-brand/45 hover:bg-cinema-brand/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft"
+                    className="group relative min-h-11 overflow-hidden rounded-xl border border-white/8 bg-white/4 px-3 py-3 text-center text-xs text-cinema-muted transition hover:-translate-y-0.5 hover:border-cinema-brand/45 hover:bg-cinema-brand/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft"
                   >
                     {episode.name}
                     {episode.parse === 1 ? <span className="absolute right-1 top-1 text-[9px] font-bold text-cinema-brand-soft">JX</span> : null}
@@ -122,7 +148,7 @@ export function DetailClient({ id, site }: { id: string; site?: string }) {
         </div>
 
         <Panel className="h-fit p-4 sm:p-5 lg:sticky lg:top-[92px]">
-          <div className="mb-4">
+          <div className="mb-4 border-b border-white/6 pb-4">
             <Eyebrow>Change Source</Eyebrow>
             <h2 className="mt-1.5 text-lg font-black text-white">同名影片换源</h2>
           </div>
@@ -140,7 +166,18 @@ export function DetailClient({ id, site }: { id: string; site?: string }) {
               ))}
             </div>
           ) : (
-            <p className="rounded-xl bg-white/4 p-4 text-xs leading-relaxed text-cinema-subtle">正在并发搜索其他源的同名影片，命中后会自动出现在这里。</p>
+            <div className="space-y-3 rounded-xl bg-white/4 p-4">
+              <div className="flex items-center gap-3">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-cinema-brand" />
+                <p className="text-xs text-cinema-subtle">正在并发搜索其他源的同名影片</p>
+              </div>
+              {Array.from({ length: 2 }).map((_, index) => (
+                <div key={index} className="flex items-center gap-3">
+                  <div className="h-14 w-10 animate-pulse rounded-md bg-white/6" />
+                  <div className="h-3 flex-1 animate-pulse rounded-full bg-white/6" />
+                </div>
+              ))}
+            </div>
           )}
         </Panel>
       </div>

@@ -39,9 +39,9 @@ export function SiteHeader() {
   const currentSite = config?.sites.find((site) => site.key === siteKey);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/8 bg-cinema-page/92 backdrop-blur-2xl">
+    <header className="sticky top-0 z-50 border-b border-white/8 bg-cinema-page/94 backdrop-blur-2xl">
       <div className="mx-auto flex h-16 max-w-[1480px] items-center gap-3 px-3 md:h-[72px] md:gap-5 md:px-6 lg:px-8">
-        <Link href="/" className="flex min-w-0 shrink-0 items-center gap-2.5" aria-label="七星视频首页">
+        <Link href="/" className="flex min-h-11 min-w-0 shrink-0 items-center gap-2.5 py-1" aria-label="七星视频首页">
           <span className="relative grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-cinema-brand to-cinema-brand-strong text-base font-black text-white shadow-brand-glow">
             七
             <span className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/25" />
@@ -52,7 +52,7 @@ export function SiteHeader() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-1 lg:flex">
+        <nav className="hidden items-center gap-1 rounded-full border border-white/8 bg-black/25 p-1 lg:flex">
           {NAV.map((item) => {
             const active = pathname === "/" && activeId === item.id;
             return (
@@ -60,7 +60,7 @@ export function SiteHeader() {
                 key={item.label}
                 href={item.id ? `/?c=${item.id}` : "/"}
                 className={`group relative flex h-11 items-center rounded-full px-3.5 text-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft xl:px-4 ${
-                  active ? "bg-white/10 font-bold text-white" : "text-cinema-muted hover:bg-white/6 hover:text-white"
+                  active ? "bg-white/12 font-bold text-white shadow-panel" : "text-cinema-muted hover:bg-white/6 hover:text-white"
                 }`}
               >
                 {item.label}
@@ -92,13 +92,14 @@ export function SiteHeader() {
               onClick={() => setSourceOpen((value) => !value)}
               className="flex h-11 items-center gap-2 rounded-full border border-white/10 bg-white/5 px-2.5 text-xs text-cinema-muted transition hover:border-cinema-brand/50 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft md:max-w-[190px] md:px-3"
               aria-label="切换站点源"
+              aria-expanded={sourceOpen}
             >
               <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-cinema-success shadow-[0_0_10px_var(--success)]" />
               <span className="hidden max-w-[104px] truncate md:block">{currentSite?.name ?? "加载中…"}</span>
               <svg viewBox="0 0 24 24" className={`h-3 w-3 shrink-0 transition-transform ${sourceOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6" /></svg>
             </button>
             {sourceOpen ? (
-              <div className="absolute right-0 top-full z-50 mt-2 w-[min(88vw,320px)] overflow-hidden rounded-2xl border border-white/10 bg-cinema-elevated/98 p-2 shadow-2xl backdrop-blur-xl">
+              <div className="absolute right-0 top-full z-50 mt-2 w-[min(88vw,340px)] overflow-hidden rounded-2xl border border-white/10 bg-cinema-panel/98 p-2 shadow-2xl backdrop-blur-xl">
                 {config?.sites.map((site) => (
                   <button
                     key={site.key}
@@ -131,6 +132,26 @@ export function SiteHeader() {
           </Link>
         </div>
       </div>
+      {pathname === "/" ? (
+        <nav className="border-t border-white/6 bg-black/20 lg:hidden">
+          <div className="no-scrollbar mx-auto flex max-w-[1480px] items-center gap-2 overflow-x-auto px-3 py-2">
+            {NAV.map((item) => {
+              const active = activeId === item.id;
+              return (
+                <Link
+                  key={item.label}
+                  href={item.id ? `/?c=${item.id}` : "/"}
+                  className={`h-11 shrink-0 rounded-full px-3.5 text-xs transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${
+                    active ? "bg-cinema-brand/16 font-bold text-cinema-brand-soft" : "text-cinema-muted hover:bg-white/6 hover:text-white"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
+      ) : null}
     </header>
   );
 }

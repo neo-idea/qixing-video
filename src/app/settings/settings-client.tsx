@@ -12,12 +12,19 @@ export function SettingsClient() {
 
   return (
     <div className="mx-auto max-w-5xl">
-      <Panel className="mb-5 p-4 sm:mb-6 sm:p-6">
+      <Panel className="relative mb-5 overflow-hidden p-4 sm:mb-6 sm:p-6 lg:p-8">
+        <div aria-hidden className="absolute -right-16 -top-20 h-64 w-64 rounded-full bg-cinema-brand/12 blur-3xl" />
+        <div className="relative">
         <Eyebrow wide>Source Center</Eyebrow>
-        <h1 className="mt-2 text-2xl font-black tracking-tight text-white sm:mt-3 sm:text-3xl">接口源设置</h1>
+        <h1 className="mt-2 bg-gradient-to-r from-white via-white to-white/70 bg-clip-text text-2xl font-black tracking-tight text-transparent sm:mt-3 sm:text-3xl">接口源设置</h1>
         <p className="mt-2 max-w-2xl text-xs leading-relaxed text-cinema-subtle sm:text-sm sm:leading-relaxed">
           对应 APK SettingActivity 的 api_url，支持 `地址;pk;密码` 与 Base64/AES 加密配置。当前站点、解析接口与嗅探规则都会由同一份配置驱动。
         </p>
+        <div className="mt-4 grid gap-2 sm:grid-cols-3">
+          <div className="rounded-2xl border border-white/8 bg-black/25 p-3"><p className="text-[10px] text-cinema-subtle">站点源</p><p className="mt-1 text-lg font-black text-white">{config?.sites.length ?? 0}</p></div>
+          <div className="rounded-2xl border border-white/8 bg-black/25 p-3"><p className="text-[10px] text-cinema-subtle">解析接口</p><p className="mt-1 text-lg font-black text-white">{config?.parses.length ?? 0}</p></div>
+          <div className="rounded-2xl border border-white/8 bg-black/25 p-3"><p className="text-[10px] text-cinema-subtle">嗅探规则</p><p className="mt-1 text-lg font-black text-white">{config?.rules.length ?? 0}</p></div>
+        </div>
         <form
           className="mt-5 flex flex-col gap-3 sm:mt-6 sm:flex-row"
           onSubmit={(event) => {
@@ -36,6 +43,7 @@ export function SettingsClient() {
           </Button>
         </form>
         {notice ? <p className="mt-3 rounded-xl border border-cinema-warning/20 bg-cinema-warning/10 p-3 text-xs text-cinema-warning">{notice}</p> : null}
+        </div>
       </Panel>
 
       <Panel className="mb-5 p-4 sm:mb-6 sm:p-6">
@@ -51,17 +59,18 @@ export function SettingsClient() {
             <button
               key={site.key}
               onClick={() => setSiteKey(site.key)}
-              className={`flex min-h-[76px] w-full items-center gap-3 rounded-2xl p-3 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft sm:gap-4 sm:p-4 ${
+              className={`relative flex min-h-[84px] w-full items-center gap-3 overflow-hidden rounded-2xl p-3 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft sm:gap-4 sm:p-4 ${
                 site.key === siteKey ? "border border-cinema-brand/40 bg-cinema-brand/12" : "border border-white/7 bg-white/4 hover:bg-white/8"
               }`}
             >
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/8 text-sm font-black text-white sm:h-11 sm:w-11">{site.name.slice(0, 2)}</span>
+              {site.key === siteKey ? <span aria-hidden className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-cinema-brand/18 to-transparent" /> : null}
+              <span className={`relative grid h-10 w-10 shrink-0 place-items-center rounded-xl text-sm font-black sm:h-11 sm:w-11 ${site.key === siteKey ? "bg-cinema-brand/20 text-cinema-brand-soft" : "bg-white/8 text-white"}`}>{site.name.slice(0, 2)}</span>
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm font-bold text-white">{site.name}</span>
                 <span className="mt-1 block truncate font-mono text-[10px] text-cinema-subtle">{site.api}</span>
               </span>
-              <span className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] ${site.key === siteKey ? "bg-cinema-brand/20 text-cinema-brand-soft" : "bg-white/8 text-cinema-muted"}`}>
-                type {site.type}
+              <span className={`relative shrink-0 rounded-full px-2.5 py-1 text-[10px] ${site.key === siteKey ? "bg-cinema-brand/20 text-cinema-brand-soft" : "bg-white/8 text-cinema-muted"}`}>
+                {site.key === siteKey ? "当前源" : `type ${site.type}`}
               </span>
             </button>
           ))}

@@ -95,3 +95,22 @@ body {
 .cinematic-shadow {
   box-shadow: var(--shadow-cinematic);
 }
+
+.channel-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.08) 48%, transparent 62%);
+  transform: translateX(-120%);
+  transition: transform 700ms ease;
+}
+
+.channel-card:hover::after,
+.channel-card:focus-visible::after {
+  transform: translateX(120%);
+}
+
+@keyframes loading-slide {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(320%); }
+}

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Chip, Eyebrow, Panel } from "@/components/ui";
+import { Chip, Eyebrow, LinkButton, Panel } from "@/components/ui";
 import { VideoPlayer } from "@/components/video-player";
 import type { ParseStep } from "@/lib/engines/parse";
 import type { VodDetail } from "@/lib/types";
@@ -46,18 +46,26 @@ export function PlayClient({
   const episodes = detail.vod_play_url[sourceIndex] ?? detail.vod_play_url[0];
   const current = episodes[episodeIndex] ?? episodes[0];
   const parseLabel = play.parse === 0 ? "网页嗅探" : play.parse === 1 ? "Json 解析" : "并发扩展";
+  const previous = episodes[episodeIndex - 1];
+  const next = episodes[episodeIndex + 1];
 
   return (
     <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_330px] lg:gap-5 xl:grid-cols-[minmax(0,1fr)_358px]">
       <div className="min-w-0">
-        <VideoPlayer src={finalUrl} />
-        <Panel className="mt-3 p-4 sm:mt-4 sm:p-5">
+        <VideoPlayer src={finalUrl} title={detail.vod_name} sourceLabel={`${from} · ${current.name}`} />
+        <Panel className="relative mt-3 overflow-hidden p-4 sm:mt-4 sm:p-5">
+          <div aria-hidden className="absolute -right-12 -top-16 h-44 w-44 rounded-full bg-cinema-brand/12 blur-3xl" />
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:gap-4">
             <div className="min-w-0">
-              <Link href={`/detail/${detail.vod_id}?site=${siteKey}`} className="block truncate text-xl font-black tracking-tight text-white transition hover:text-cinema-brand-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cinema-brand-soft sm:text-2xl">
+              <Link href={`/detail/${detail.vod_id}?site=${siteKey}`} className="inline-flex min-h-11 max-w-full items-center truncate text-xl font-black tracking-tight text-white transition hover:text-cinema-brand-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cinema-brand-soft sm:text-2xl">
                 {detail.vod_name}
               </Link>
               <p className="mt-1.5 line-clamp-2 text-[11px] leading-relaxed text-cinema-subtle sm:mt-2 sm:text-xs">{detail.year} · {detail.area} · {detail.category} · {detail.vod_remarks}</p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {previous ? <LinkButton href={`/play/${detail.vod_id}/${sourceIndex}-${episodeIndex - 1}?site=${siteKey}`} variant="secondary" size="sm">上一集</LinkButton> : <span className="inline-flex h-11 items-center rounded-full border border-white/8 bg-white/4 px-4 text-xs text-cinema-subtle">已是第一集</span>}
+                {next ? <LinkButton href={`/play/${detail.vod_id}/${sourceIndex}-${episodeIndex + 1}?site=${siteKey}`} variant="secondary" size="sm">下一集</LinkButton> : <span className="inline-flex h-11 items-center rounded-full border border-white/8 bg-white/4 px-4 text-xs text-cinema-subtle">已是最后一集</span>}
+                <LinkButton href={`/detail/${detail.vod_id}?site=${siteKey}`} variant="ghost" size="sm">详情与换源</LinkButton>
+              </div>
             </div>
             <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1 text-xs sm:mx-0 sm:flex-wrap sm:px-0">
               <Chip className="shrink-0">{from} · {current.name}</Chip>
@@ -72,25 +80,33 @@ export function PlayClient({
               <Eyebrow>Parser Trace</Eyebrow>
               <h2 className="mt-1.5 text-base font-black text-white">播放解析链路</h2>
             </div>
-            <Chip size="sm" className="hidden text-[11px] sm:inline-flex">PlayActivity.OooOO0O</Chip>
+            <Chip size="sm" tone={steps.length && steps.every((step) => step.ok) ? "success" : steps.some((step) => !step.ok) ? "warning" : "brand"} className="hidden text-[11px] sm:inline-flex">
+              {steps.length ? `${steps.length} 步` : "解析中"}
+            </Chip>
           </div>
           <ol className="space-y-3">
             {steps.map((step, index) => (
-              <li key={index} className="flex items-start gap-2.5 rounded-xl border border-white/6 bg-white/4 p-3 text-xs sm:gap-3">
-                <span className={`mt-0.5 rounded-lg px-2 py-1 font-mono text-[10px] ${step.ok ? "bg-cinema-success/15 text-cinema-success" : "bg-cinema-danger/15 text-cinema-danger"}`}>
+              <li key={index} className="relative flex items-start gap-2.5 rounded-xl border border-white/6 bg-white/4 p-3 text-xs sm:gap-3">
+                <span className="absolute bottom-0 left-[22px] top-3 w-px bg-white/8" aria-hidden />
+                <span className={`relative z-10 mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg font-mono text-[10px] ${step.ok ? "bg-cinema-success/15 text-cinema-success" : "bg-cinema-danger/15 text-cinema-danger"}`}>
                   {step.engine}
                 </span>
                 <span className="min-w-0 flex-1 text-cinema-muted">{step.message}</span>
                 <span className="shrink-0 font-mono text-[10px] text-cinema-subtle">{step.costMs}ms</span>
               </li>
             ))}
-            {!steps.length ? <li className="rounded-xl bg-white/4 p-4 text-xs text-cinema-subtle">正在生成解析过程…</li> : null}
+            {!steps.length ? (
+              <li className="flex items-center gap-3 rounded-xl bg-white/4 p-4 text-xs text-cinema-subtle">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-cinema-brand" />
+                正在生成解析过程…
+              </li>
+            ) : null}
           </ol>
         </Panel>
       </div>
 
       <Panel className="h-fit p-4 sm:p-5 lg:sticky lg:top-[92px]">
-        <div className="mb-4 flex items-center justify-between gap-3">
+        <div className="mb-4 flex items-center justify-between gap-3 border-b border-white/6 pb-4">
           <div>
             <Eyebrow>Episode</Eyebrow>
             <h3 className="mt-1 line-clamp-1 text-base font-black text-white sm:mt-1.5 sm:text-lg">选集 · {from}</h3>
@@ -102,11 +118,11 @@ export function PlayClient({
             <Link
               key={`${episode.name}-${index}`}
               href={`/play/${detail.vod_id}/${sourceIndex}-${index}?site=${siteKey}`}
-              className={`rounded-xl py-2.5 text-center text-xs transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${
+              className={`flex h-11 items-center justify-center rounded-xl px-1 text-center text-xs transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${
                 index === episodeIndex ? "brand-button font-bold text-white" : "border border-white/7 bg-white/4 text-cinema-muted hover:bg-white/10 hover:text-white"
               }`}
             >
-              {index + 1}
+              <span className="truncate">{index + 1}</span>
             </Link>
           ))}
         </div>
@@ -122,8 +138,8 @@ export function PlayClient({
                   index === sourceIndex ? "border border-cinema-brand/40 bg-cinema-brand/12 font-bold text-cinema-brand-soft" : "border border-white/7 bg-white/4 text-cinema-muted hover:bg-white/8 hover:text-white"
                 }`}
               >
-                {line}
-                <span className="text-[10px] text-cinema-subtle">{index === sourceIndex ? "当前" : "切换"}</span>
+                <span className="min-w-0 truncate">{line}</span>
+                <span className="shrink-0 text-[10px] text-cinema-subtle">{index === sourceIndex ? "当前" : `${detail.vod_play_url[index]?.length ?? 0} 集`}</span>
               </Link>
             ))}
           </div>
