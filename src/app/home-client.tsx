@@ -114,22 +114,22 @@ export function HomeClient() {
         <div className="mb-5 rounded-xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-xs text-amber-300">{notice}</div>
       ) : null}
 
-      <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.36em] text-[#ff812b]">Qixing Original</p>
-          <h1 className="mt-2 text-3xl font-black tracking-tight text-white sm:text-4xl">{tid ? `${currentName}频道` : "今晚看点，全部为你排好"}</h1>
-          <p className="mt-2 text-sm text-zinc-500">
+          <h1 className="mt-2 text-2xl font-black leading-tight tracking-tight text-white sm:text-3xl lg:text-4xl">{tid ? `${currentName}频道` : "今晚看点，全部为你排好"}</h1>
+          <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-zinc-500 sm:text-sm">
             {tid ? `按 ${currentName} 分类聚合当前接口源，支持年份与地区筛选` : "多站点内容统一编排，保留 APK 的源切换、搜索与解析逻辑"}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2 text-xs text-zinc-400">
+        <div className="no-scrollbar -mx-3 flex gap-2 overflow-x-auto px-3 text-xs text-zinc-400 sm:mx-0 sm:flex-wrap sm:px-0 lg:justify-end">
           <span className="rounded-full border border-white/8 bg-white/5 px-3 py-2">{visible.length} 部作品</span>
           <span className="rounded-full border border-white/8 bg-white/5 px-3 py-2">{classes.length} 个分类</span>
           <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-emerald-400">源服务在线</span>
         </div>
       </div>
 
-      <div className="flex flex-col gap-5 xl:flex-row">
+      <div className="flex flex-col gap-5 lg:flex-row">
         <div className="min-w-0 flex-1">
           <HeroCarousel list={(tid ? list : homeList).slice(0, 5)} />
         </div>
@@ -137,7 +137,7 @@ export function HomeClient() {
       </div>
 
       {!tid ? (
-        <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+        <div className="mt-5 grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-3 xl:grid-cols-5">
           {CHANNELS.map((channel) => (
             <button
               key={channel.id}
@@ -152,13 +152,13 @@ export function HomeClient() {
         </div>
       ) : null}
 
-      <div className="mt-10 flex flex-wrap items-center gap-2 border-b border-white/6 pb-4">
+      <div className="no-scrollbar mt-8 flex items-center gap-2 overflow-x-auto border-b border-white/6 pb-4 sm:mt-10 lg:flex-wrap">
         <button
           onClick={() => {
             setTid("");
             setPg(1);
           }}
-          className={`h-9 rounded-full px-5 text-xs transition ${!tid ? "brand-button font-bold text-white" : "border border-white/8 bg-white/4 text-zinc-400 hover:text-white"}`}
+            className={`h-9 shrink-0 rounded-full px-4 text-xs transition sm:px-5 ${!tid ? "brand-button font-bold text-white" : "border border-white/8 bg-white/4 text-zinc-400 hover:text-white"}`}
         >
           精选
         </button>
@@ -169,7 +169,7 @@ export function HomeClient() {
               setTid(item.type_id);
               setPg(1);
             }}
-            className={`h-9 rounded-full px-5 text-xs transition ${
+              className={`h-9 shrink-0 rounded-full px-4 text-xs transition sm:px-5 ${
               tid === item.type_id ? "brand-button font-bold text-white" : "border border-white/8 bg-white/4 text-zinc-400 hover:text-white"
             }`}
           >
@@ -179,9 +179,9 @@ export function HomeClient() {
       </div>
 
       {tidFilters.length ? (
-        <div className="panel mt-5 space-y-3 rounded-2xl p-4">
+        <div className="panel mt-5 space-y-3 rounded-2xl p-3 sm:p-4">
           {tidFilters.map((filter) => (
-            <div key={filter.key} className="flex flex-wrap items-center gap-2 text-xs">
+            <div key={filter.key} className="no-scrollbar flex items-center gap-2 overflow-x-auto text-xs sm:flex-wrap">
               <span className="w-10 shrink-0 text-zinc-500">{filter.name}</span>
               {filter.value.map((value) => {
                 const active = (extend[filter.key] ?? "") === (value === "全部" ? "" : value);
@@ -189,7 +189,7 @@ export function HomeClient() {
                   <button
                     key={value}
                     onClick={() => pick(filter.key, value)}
-                    className={`rounded-lg px-3 py-1.5 transition ${active ? "bg-orange-500/18 font-semibold text-[#ffb66e]" : "text-zinc-400 hover:bg-white/6 hover:text-white"}`}
+                    className={`shrink-0 rounded-lg px-3 py-1.5 transition ${active ? "bg-orange-500/18 font-semibold text-[#ffb66e]" : "text-zinc-400 hover:bg-white/6 hover:text-white"}`}
                   >
                     {value}
                   </button>
@@ -202,7 +202,7 @@ export function HomeClient() {
 
       {tid ? (
         <>
-          <div className="mt-7 grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
+          <div className="mt-6 grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 sm:gap-x-4 sm:gap-y-8 lg:grid-cols-5 xl:grid-cols-6">
             {visible.map((item, index) => (
               <VideoCard key={`${item.vod_id}-${index}`} item={item} rank={index < 3 ? index + 1 : undefined} />
             ))}

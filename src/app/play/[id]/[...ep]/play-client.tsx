@@ -47,35 +47,35 @@ export function PlayClient({
   const parseLabel = play.parse === 0 ? "网页嗅探" : play.parse === 1 ? "Json 解析" : "并发扩展";
 
   return (
-    <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_358px]">
+    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_330px] lg:gap-5 xl:grid-cols-[minmax(0,1fr)_358px]">
       <div className="min-w-0">
         <VideoPlayer src={finalUrl} />
-        <section className="panel mt-4 rounded-2xl p-5">
-          <div className="flex flex-wrap items-start justify-between gap-4">
+        <section className="panel mt-3 rounded-2xl p-4 sm:mt-4 sm:p-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:gap-4">
             <div className="min-w-0">
-              <Link href={`/detail/${detail.vod_id}?site=${siteKey}`} className="block truncate text-2xl font-black tracking-tight text-white transition hover:text-[#ffa257]">
+              <Link href={`/detail/${detail.vod_id}?site=${siteKey}`} className="block truncate text-xl font-black tracking-tight text-white transition hover:text-[#ffa257] sm:text-2xl">
                 {detail.vod_name}
               </Link>
-              <p className="mt-2 text-xs text-zinc-500">{detail.year} · {detail.area} · {detail.category} · {detail.vod_remarks}</p>
+              <p className="mt-1.5 line-clamp-2 text-[11px] leading-relaxed text-zinc-500 sm:mt-2 sm:text-xs">{detail.year} · {detail.area} · {detail.category} · {detail.vod_remarks}</p>
             </div>
-            <div className="flex flex-wrap gap-2 text-xs">
+            <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1 text-xs sm:mx-0 sm:flex-wrap sm:px-0">
               <span className="rounded-full border border-white/10 bg-white/6 px-3 py-2 text-zinc-300">{from} · {current.name}</span>
               <span className="rounded-full border border-orange-500/25 bg-orange-500/10 px-3 py-2 font-semibold text-[#ffb66e]">解析: {parseLabel}</span>
             </div>
           </div>
         </section>
 
-        <section className="panel mt-4 rounded-2xl p-5">
-          <div className="mb-4 flex items-center justify-between">
+        <section className="panel mt-4 rounded-2xl p-4 sm:p-5">
+          <div className="mb-4 flex items-start justify-between gap-3">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#ff812b]">Parser Trace</p>
               <h2 className="mt-1.5 text-base font-black text-white">播放解析链路</h2>
             </div>
-            <span className="rounded-full bg-white/6 px-3 py-1.5 text-[11px] text-zinc-500">PlayActivity.OooOO0O</span>
+            <span className="hidden shrink-0 rounded-full bg-white/6 px-3 py-1.5 text-[11px] text-zinc-500 sm:block">PlayActivity.OooOO0O</span>
           </div>
           <ol className="space-y-3">
             {steps.map((step, index) => (
-              <li key={index} className="flex items-start gap-3 rounded-xl border border-white/6 bg-white/4 p-3 text-xs">
+              <li key={index} className="flex items-start gap-2.5 rounded-xl border border-white/6 bg-white/4 p-3 text-xs sm:gap-3">
                 <span className={`mt-0.5 rounded-lg px-2 py-1 font-mono text-[10px] ${step.ok ? "bg-emerald-500/15 text-emerald-400" : "bg-red-500/15 text-red-400"}`}>
                   {step.engine}
                 </span>
@@ -88,15 +88,15 @@ export function PlayClient({
         </section>
       </div>
 
-      <aside className="panel h-fit rounded-2xl p-5 xl:sticky xl:top-[92px]">
-        <div className="mb-4 flex items-center justify-between">
+      <aside className="panel h-fit rounded-2xl p-4 sm:p-5 lg:sticky lg:top-[92px]">
+        <div className="mb-4 flex items-center justify-between gap-3">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#ff812b]">Episode</p>
-            <h3 className="mt-1.5 text-lg font-black text-white">选集 · {from}</h3>
+            <h3 className="mt-1 line-clamp-1 text-base font-black text-white sm:mt-1.5 sm:text-lg">选集 · {from}</h3>
           </div>
           <span className="rounded-full bg-white/6 px-3 py-1.5 text-[11px] text-zinc-400">{episodes.length} 集</span>
         </div>
-        <div className="grid max-h-[48vh] grid-cols-4 gap-2 overflow-y-auto pr-1">
+        <div className="grid max-h-[42vh] grid-cols-4 gap-2 overflow-y-auto pr-1 sm:max-h-[48vh] sm:grid-cols-4 lg:grid-cols-4">
           {episodes.map((episode, index) => (
             <Link
               key={`${episode.name}-${index}`}

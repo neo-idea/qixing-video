@@ -1,5 +1,6 @@
 import { SearchClient } from "./search-client";
 
-export default async function SearchPage({ searchParams }: { searchParams: { q?: string } }) {
-  return <SearchClient q={searchParams.q ?? ""} />;
+export default async function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+  const { q } = await searchParams;
+  return <SearchClient q={q ?? ""} />;
 }

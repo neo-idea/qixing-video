@@ -4,8 +4,10 @@ export default async function DetailPage({
   params,
   searchParams,
 }: {
-  params: { id: string };
-  searchParams: { site?: string };
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ site?: string }>;
 }) {
-  return <DetailClient id={params.id} site={searchParams.site} />;
+  const { id } = await params;
+  const { site } = await searchParams;
+  return <DetailClient id={id} site={site} />;
 }

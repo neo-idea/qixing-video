@@ -12,6 +12,10 @@
 # next.js
 /.next/
 /.next_broken/
+/.open-next/
+/.edge-profile/
+/.edge-check/
+/.wrangler/
 /out/
 
 # production
@@ -35,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+_patch.diff
+_ap.mjs
+_check*.cjs
+*.png

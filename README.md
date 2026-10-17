@@ -15,6 +15,18 @@ npm run build
 npm run start
 ```
 
+## Cloudflare 部署
+
+项目使用 Cloudflare OpenNext 适配器部署到 Workers，保留 Next.js 动态路由与接口代理能力：
+
+```bash
+npm run build:cf    # 构建 .open-next 产物
+npm run preview:cf  # 本地 Workers 预览
+npm run deploy:cf   # 登录 Wrangler 后部署
+```
+
+首次部署前先执行 `npx wrangler login`。Worker 名称与兼容性配置在 `wrangler.jsonc` 中维护。
+
 ## 产品界面
 
 - **首页**：沉浸式主推轮播、七星空降榜、频道入口、横向内容专区、分类筛选与分页。
@@ -22,7 +34,7 @@ npm run start
 - **播放**：影院级播放器、解析链路追踪、选集面板、线路切换。
 - **搜索**：全源并发搜索、实时进度、按站点分组展示。
 - **设置**：接口地址、站点源、解析接口、嗅探规则统一管理。
-- **响应式**：桌面门户、平板与手机窄屏均可使用，无横向溢出。
+- **响应式**：桌面门户、平板与手机窄屏均可使用，无横向溢出；手机端提供底部导航、压缩顶栏、单手可触搜索与源切换入口。
 
 ## 与 APK 的对应关系
 

@@ -4,7 +4,7 @@ import { Poster } from "./poster";
 
 export function RankPanel({ list, title = "七星空降榜" }: { list: VodItem[]; title?: string }) {
   return (
-    <aside className="panel flex w-full flex-col rounded-2xl p-4 lg:w-[354px]">
+    <aside className="panel flex w-full flex-col rounded-2xl p-3 sm:p-4 lg:w-[330px] xl:w-[354px]">
       <div className="mb-4 flex items-center justify-between">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#ff812b]">Hot Ranking</p>
@@ -15,7 +15,7 @@ export function RankPanel({ list, title = "七星空降榜" }: { list: VodItem[]
       <ol className="flex-1 space-y-2">
         {list.map((v, idx) => (
           <li key={v.vod_id}>
-            <Link href={`/detail/${v.vod_id}`} className="group flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-white/5">
+            <Link href={`/detail/${v.vod_id}`} className="group flex items-center gap-2.5 rounded-xl p-2 transition-colors hover:bg-white/5">
               <span className={`w-5 shrink-0 text-center text-lg font-black italic ${idx === 0 ? "text-[#ff4d00]" : idx === 1 ? "text-[#ff9a44]" : idx === 2 ? "text-[#ffc125]" : "text-zinc-700"}`}>
                 {idx + 1}
               </span>
