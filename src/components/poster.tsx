@@ -5,7 +5,7 @@ export function Poster({ item, wide = false, compact = false }: { item: VodItem;
     <div
       className={`poster-noise relative w-full overflow-hidden ${wide ? "aspect-video" : "aspect-[2/3]"}`}
       style={{
-        background: `radial-gradient(120% 80% at 20% 0%, ${item.gradient[1]} 0%, transparent 58%), linear-gradient(155deg, ${item.gradient[0]} 0%, #08080b 96%)`,
+        background: `radial-gradient(120% 80% at 20% 0%, ${item.gradient[1]} 0%, transparent 58%), linear-gradient(155deg, ${item.gradient[0]} 0%, var(--surface-page) 96%)`,
       }}
     >
       <div aria-hidden className="absolute -right-4 top-3 select-none text-[110px] leading-none opacity-20 blur-[0.5px] sm:text-[135px]">
@@ -20,7 +20,7 @@ export function Poster({ item, wide = false, compact = false }: { item: VodItem;
         </div>
       ) : null}
       {item.vod_score ? (
-        <span className="absolute left-2 top-2 rounded-md border border-white/15 bg-black/60 px-1.5 py-0.5 text-[11px] font-black text-[#ffb66e] backdrop-blur">
+        <span className="absolute left-2 top-2 rounded-md border border-white/15 bg-black/60 px-1.5 py-0.5 text-[11px] font-black text-cinema-brand-soft backdrop-blur">
           {item.vod_score}
         </span>
       ) : null}

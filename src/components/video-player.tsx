@@ -63,8 +63,8 @@ export function VideoPlayer({ src, poster }: { src: string; poster?: string }) {
       {loading && !error ? (
         <div className="pointer-events-none absolute inset-0 grid place-items-center bg-black/45">
           <div className="flex flex-col items-center gap-3">
-            <div className="h-11 w-11 animate-spin rounded-full border-2 border-white/18 border-t-[#ff4d00]" />
-            <p className="text-xs text-zinc-400">正在接入播放源…</p>
+            <div className="h-11 w-11 animate-spin rounded-full border-2 border-white/18 border-t-cinema-brand" />
+            <p className="text-xs text-cinema-muted">正在接入播放源…</p>
           </div>
         </div>
       ) : null}
@@ -72,7 +72,7 @@ export function VideoPlayer({ src, poster }: { src: string; poster?: string }) {
         <div className="absolute inset-0 grid place-items-center bg-black/88 px-8 text-center">
           <div>
             <p className="mb-2 text-base font-bold text-white">{error}</p>
-            <p className="text-xs leading-relaxed text-zinc-500">可尝试切换线路、集数或接口源；公共测试流在网络受限时可能不可用。</p>
+            <p className="text-xs leading-relaxed text-cinema-subtle">可尝试切换线路、集数或接口源；公共测试流在网络受限时可能不可用。</p>
           </div>
         </div>
       ) : null}

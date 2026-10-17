@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { VideoCard } from "@/components/video-card";
+import { Chip, EmptyState, Eyebrow, Panel } from "@/components/ui";
 import { useConfig } from "@/lib/store";
 import type { SourceBean, VodItem } from "@/lib/types";
 
@@ -40,20 +41,20 @@ export function SearchClient({ q }: { q: string }) {
 
   return (
     <>
-      <section className="panel mb-6 overflow-hidden rounded-2xl p-4 sm:p-6">
-        <p className="text-[10px] font-bold uppercase tracking-[0.36em] text-[#ff812b]">Global Search</p>
+      <Panel className="mb-6 p-4 sm:p-6">
+        <Eyebrow wide>Global Search</Eyebrow>
         <h1 className="mt-2 line-clamp-2 text-2xl font-black leading-tight tracking-tight text-white sm:mt-3 sm:text-4xl">
           “<span className="brand-text">{q}</span>” 全源搜索
         </h1>
-        <div className="no-scrollbar mt-4 flex gap-2 overflow-x-auto text-xs text-zinc-500 sm:mt-5 sm:flex-wrap sm:gap-3">
-          <span className="rounded-full border border-white/8 bg-white/5 px-3 py-2">{done} / {total} 个源已完成</span>
-          <span className="rounded-full border border-white/8 bg-white/5 px-3 py-2">{groups.reduce((sum, group) => sum + group.list.length, 0)} 条结果</span>
-          <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-emerald-400">FastSearchActivity 并发</span>
+        <div className="no-scrollbar mt-4 flex gap-2 overflow-x-auto sm:mt-5 sm:flex-wrap sm:gap-3">
+          <Chip className="shrink-0">{done} / {total} 个源已完成</Chip>
+          <Chip className="shrink-0">{groups.reduce((sum, group) => sum + group.list.length, 0)} 条结果</Chip>
+          <Chip tone="success" className="shrink-0">全源并发搜索</Chip>
         </div>
         <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/8 sm:mt-5">
-          <div className="h-full rounded-full bg-gradient-to-r from-[#ffb66e] to-[#ff4d00] transition-all" style={{ width: total ? `${(done / total) * 100}%` : "0%" }} />
+          <div className="h-full rounded-full bg-gradient-to-r from-cinema-brand-soft to-cinema-brand-strong transition-all" style={{ width: total ? `${(done / total) * 100}%` : "0%" }} />
         </div>
-      </section>
+      </Panel>
 
       {loading && !groups.length ? (
         <div className="grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 sm:gap-x-4 sm:gap-y-8 lg:grid-cols-5 xl:grid-cols-6">
@@ -66,10 +67,10 @@ export function SearchClient({ q }: { q: string }) {
           <section key={group.site.key} className="mb-8 sm:mb-10">
             <div className="mb-4 flex items-center justify-between gap-3 sm:gap-4">
               <h2 className="flex min-w-0 items-center gap-2.5 text-base font-black text-white sm:text-lg">
-                <span className="h-5 w-[3px] shrink-0 rounded-full bg-gradient-to-b from-[#ffb66e] to-[#ff3d00]" />
+                <span className="h-5 w-[3px] shrink-0 rounded-full bg-gradient-to-b from-cinema-brand-soft to-cinema-brand-strong" />
                 {group.site.name}
               </h2>
-              <span className="rounded-full bg-white/6 px-3 py-1.5 text-[11px] text-zinc-500">{group.list.length} 条</span>
+              <Chip size="sm" className="text-[11px]">{group.list.length} 条</Chip>
             </div>
             <div className="grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 sm:gap-x-4 sm:gap-y-8 lg:grid-cols-5 xl:grid-cols-6">
               {group.list.map((item, index) => (
@@ -79,10 +80,7 @@ export function SearchClient({ q }: { q: string }) {
           </section>
         ))
       ) : (
-        <div className="panel grid place-items-center rounded-2xl px-4 py-20 text-center sm:py-24">
-          <p className="text-lg font-bold text-white">没有找到相关影片</p>
-          <p className="mt-2 text-xs text-zinc-500">可尝试切换关键词，或在接口源页更换配置</p>
-        </div>
+        <EmptyState title="没有找到相关影片" description="可尝试缩短关键词、切换站点源，或在接口源页更换配置。" />
       )}
     </>
   );

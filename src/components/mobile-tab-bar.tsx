@@ -24,7 +24,7 @@ export function MobileTabBar() {
   }, [pathname]);
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[#08080b]/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-cinema-page/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden">
       <div className="mx-auto grid max-w-lg grid-cols-5">
         {TABS.map((tab) => {
           const active = tab.href.startsWith("/?")
@@ -34,11 +34,11 @@ export function MobileTabBar() {
             <Link
               key={tab.label}
               href={tab.href}
-              className={`flex min-h-[58px] flex-col items-center justify-center gap-1 px-1 py-2 text-[10px] transition ${
-                active ? "font-bold text-[#ffb66e]" : "text-zinc-500"
+              className={`flex min-h-[58px] flex-col items-center justify-center gap-1 px-1 py-2 text-[10px] transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${
+                active ? "font-bold text-cinema-brand-soft" : "text-cinema-subtle"
               }`}
             >
-              <svg viewBox="0 0 24 24" className={`h-5 w-5 ${active ? "fill-[#ffb66e]" : "fill-zinc-600"}`}><path d={tab.icon} /></svg>
+              <svg viewBox="0 0 24 24" className={`h-5 w-5 ${active ? "fill-cinema-brand-soft" : "fill-cinema-subtle"}`}><path d={tab.icon} /></svg>
               {tab.label}
             </Link>
           );

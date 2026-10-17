@@ -4,16 +4,38 @@
 
 :root {
   color-scheme: dark;
-  --brand: #ff4d00;
-  --brand-light: #ffa257;
+  --surface-page: #08080b;
+  --surface-panel: rgba(15, 15, 20, 0.92);
+  --surface-elevated: rgba(255, 255, 255, 0.05);
+  --text-primary: #ffffff;
+  --text-muted: #a1a1aa;
+  --text-subtle: #71717a;
+  --brand-300: #ffb66e;
+  --brand-500: #ff5e00;
+  --brand-600: #d92c00;
+  --success: #34d399;
+  --warning: #fbbf24;
+  --danger: #f87171;
+  --accent-blue: #2d5bff;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --shadow-panel: 0 22px 60px rgba(0, 0, 0, 0.34);
+  --shadow-cinematic: 0 34px 100px rgba(0, 0, 0, 0.62);
+  --shadow-brand: 0 14px 34px rgba(255, 94, 0, 0.28);
 }
 
 body {
   background:
     radial-gradient(900px 500px at 15% -8%, rgba(255, 77, 0, 0.18), transparent 70%),
     radial-gradient(900px 600px at 90% 0%, rgba(45, 91, 255, 0.12), transparent 72%),
-    #08080b;
+    var(--surface-page);
   font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", system-ui, sans-serif;
+}
+
+.cinema-backdrop {
+  background:
+    radial-gradient(1000px 600px at 18% -10%, color-mix(in srgb, var(--brand-500) 18%, transparent), transparent 70%),
+    radial-gradient(1000px 700px at 88% 0%, color-mix(in srgb, var(--accent-blue) 13%, transparent), transparent 72%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-page) 42%, transparent), color-mix(in srgb, var(--surface-page) 94%, transparent));
 }
 
 ::-webkit-scrollbar {
@@ -30,15 +52,31 @@ body {
 }
 
 .panel {
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018)), rgba(15, 15, 20, 0.92);
-  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.34);
+  border: 1px solid var(--border-subtle);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018)), var(--surface-panel);
+  box-shadow: var(--shadow-panel);
   backdrop-filter: blur(18px);
 }
 
 .brand-button {
-  background: linear-gradient(135deg, #ffb166, #ff4d00);
-  box-shadow: 0 14px 34px rgba(255, 77, 0, 0.28);
+  background: linear-gradient(135deg, var(--brand-300), var(--brand-500));
+  box-shadow: var(--shadow-brand);
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand-300);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 .no-scrollbar {
@@ -55,5 +93,5 @@ body {
 }
 
 .cinematic-shadow {
-  box-shadow: 0 34px 100px rgba(0, 0, 0, 0.62);
+  box-shadow: var(--shadow-cinematic);
 }

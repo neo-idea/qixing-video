@@ -6,6 +6,7 @@ import { HeroCarousel } from "@/components/hero-carousel";
 import { RankPanel } from "@/components/rank-panel";
 import { VideoCard } from "@/components/video-card";
 import { VideoRow } from "@/components/video-row";
+import { Button, Chip, Eyebrow, Panel } from "@/components/ui";
 import { useConfig } from "@/lib/store";
 import type { CategoryFilter, VodItem } from "@/lib/types";
 
@@ -102,8 +103,8 @@ export function HomeClient() {
   if (cfgLoading) {
     return (
       <div className="grid place-items-center py-40">
-        <div className="h-12 w-12 animate-spin rounded-full border-2 border-white/10 border-t-[#ff4d00]" />
-        <p className="mt-5 text-xs tracking-wide text-zinc-500">正在加载接口源 loadConfig…</p>
+        <div className="h-12 w-12 animate-spin rounded-full border-2 border-white/10 border-t-cinema-brand" />
+        <p className="mt-5 text-xs tracking-wide text-cinema-subtle">正在加载接口源配置…</p>
       </div>
     );
   }
@@ -111,21 +112,21 @@ export function HomeClient() {
   return (
     <>
       {notice ? (
-        <div className="mb-5 rounded-xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-xs text-amber-300">{notice}</div>
+        <div className="mb-5 rounded-xl border border-cinema-warning/25 bg-cinema-warning/10 px-4 py-3 text-xs text-cinema-warning">{notice}</div>
       ) : null}
 
       <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.36em] text-[#ff812b]">Qixing Original</p>
+          <Eyebrow wide>Qixing Original</Eyebrow>
           <h1 className="mt-2 text-2xl font-black leading-tight tracking-tight text-white sm:text-3xl lg:text-4xl">{tid ? `${currentName}频道` : "今晚看点，全部为你排好"}</h1>
-          <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-zinc-500 sm:text-sm">
+          <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-cinema-subtle sm:text-sm">
             {tid ? `按 ${currentName} 分类聚合当前接口源，支持年份与地区筛选` : "多站点内容统一编排，保留 APK 的源切换、搜索与解析逻辑"}
           </p>
         </div>
-        <div className="no-scrollbar -mx-3 flex gap-2 overflow-x-auto px-3 text-xs text-zinc-400 sm:mx-0 sm:flex-wrap sm:px-0 lg:justify-end">
-          <span className="rounded-full border border-white/8 bg-white/5 px-3 py-2">{visible.length} 部作品</span>
-          <span className="rounded-full border border-white/8 bg-white/5 px-3 py-2">{classes.length} 个分类</span>
-          <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-emerald-400">源服务在线</span>
+        <div className="no-scrollbar -mx-3 flex gap-2 overflow-x-auto px-3 sm:mx-0 sm:flex-wrap sm:px-0 lg:justify-end">
+          <Chip className="shrink-0">{visible.length} 部作品</Chip>
+          <Chip className="shrink-0">{classes.length} 个分类</Chip>
+          <Chip tone="success" className="shrink-0">源服务在线</Chip>
         </div>
       </div>
 
@@ -142,11 +143,11 @@ export function HomeClient() {
             <button
               key={channel.id}
               onClick={() => setTid(channel.id)}
-              className="group relative overflow-hidden rounded-2xl border border-white/8 bg-white/4 p-4 text-left transition hover:-translate-y-1 hover:border-orange-500/40 hover:bg-white/8"
+              className="group relative min-h-[104px] overflow-hidden rounded-2xl border border-white/8 bg-white/4 p-4 text-left transition hover:-translate-y-1 hover:border-cinema-brand/40 hover:bg-white/8 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft"
             >
               <span className="absolute -right-2 -top-3 text-6xl opacity-12 transition group-hover:opacity-25">{channel.icon}</span>
               <span className="relative block text-sm font-black text-white">{channel.name}</span>
-              <span className="relative mt-1.5 block text-[11px] text-zinc-500">{channel.desc}</span>
+              <span className="relative mt-1.5 block text-[11px] text-cinema-subtle">{channel.desc}</span>
             </button>
           ))}
         </div>
@@ -158,7 +159,7 @@ export function HomeClient() {
             setTid("");
             setPg(1);
           }}
-            className={`h-9 shrink-0 rounded-full px-4 text-xs transition sm:px-5 ${!tid ? "brand-button font-bold text-white" : "border border-white/8 bg-white/4 text-zinc-400 hover:text-white"}`}
+            className={`h-11 shrink-0 rounded-full px-4 text-xs transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft sm:px-5 ${!tid ? "brand-button font-bold text-white" : "border border-white/8 bg-white/4 text-cinema-muted hover:text-white"}`}
         >
           精选
         </button>
@@ -169,8 +170,8 @@ export function HomeClient() {
               setTid(item.type_id);
               setPg(1);
             }}
-              className={`h-9 shrink-0 rounded-full px-4 text-xs transition sm:px-5 ${
-              tid === item.type_id ? "brand-button font-bold text-white" : "border border-white/8 bg-white/4 text-zinc-400 hover:text-white"
+              className={`h-11 shrink-0 rounded-full px-4 text-xs transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft sm:px-5 ${
+              tid === item.type_id ? "brand-button font-bold text-white" : "border border-white/8 bg-white/4 text-cinema-muted hover:text-white"
             }`}
           >
             {item.type_name}
@@ -179,17 +180,17 @@ export function HomeClient() {
       </div>
 
       {tidFilters.length ? (
-        <div className="panel mt-5 space-y-3 rounded-2xl p-3 sm:p-4">
+        <Panel className="mt-5 space-y-3 p-3 sm:p-4">
           {tidFilters.map((filter) => (
             <div key={filter.key} className="no-scrollbar flex items-center gap-2 overflow-x-auto text-xs sm:flex-wrap">
-              <span className="w-10 shrink-0 text-zinc-500">{filter.name}</span>
+              <span className="w-10 shrink-0 text-cinema-subtle">{filter.name}</span>
               {filter.value.map((value) => {
                 const active = (extend[filter.key] ?? "") === (value === "全部" ? "" : value);
                 return (
                   <button
                     key={value}
                     onClick={() => pick(filter.key, value)}
-                    className={`shrink-0 rounded-lg px-3 py-1.5 transition ${active ? "bg-orange-500/18 font-semibold text-[#ffb66e]" : "text-zinc-400 hover:bg-white/6 hover:text-white"}`}
+                    className={`min-h-9 shrink-0 rounded-lg px-3 py-1.5 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${active ? "bg-cinema-brand/18 font-semibold text-cinema-brand-soft" : "text-cinema-muted hover:bg-white/6 hover:text-white"}`}
                   >
                     {value}
                   </button>
@@ -197,7 +198,7 @@ export function HomeClient() {
               })}
             </div>
           ))}
-        </div>
+        </Panel>
       ) : null}
 
       {tid ? (
@@ -209,13 +210,13 @@ export function HomeClient() {
             {loading ? Array.from({ length: 6 }).map((_, index) => <div key={index} className="aspect-[2/3] animate-pulse rounded-xl bg-white/5" />) : null}
           </div>
           <div className="mt-10 text-center">
-            <button
+            <Button
               onClick={() => setPg((page) => page + 1)}
               disabled={loading}
-              className="rounded-full border border-white/10 bg-white/5 px-10 py-3 text-xs font-semibold text-zinc-300 transition hover:border-orange-500/40 hover:text-white disabled:opacity-50"
+              variant="secondary"
             >
-              {loading ? "正在加载…" : "加载更多 categoryContent"}
-            </button>
+              {loading ? "正在加载…" : "加载更多内容"}
+            </Button>
           </div>
         </>
       ) : (
