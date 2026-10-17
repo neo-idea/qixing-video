@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --brand: #ff4d00;
+  --brand-light: #ffa257;
+}
+
+body {
+  background:
+    radial-gradient(900px 500px at 15% -8%, rgba(255, 77, 0, 0.18), transparent 70%),
+    radial-gradient(900px 600px at 90% 0%, rgba(45, 91, 255, 0.12), transparent 72%),
+    #08080b;
+  font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", system-ui, sans-serif;
+}
+
+::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #3d3d49, #26262e);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #565664;
+}
+
+.panel {
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018)), rgba(15, 15, 20, 0.92);
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.34);
+  backdrop-filter: blur(18px);
+}
+
+.brand-button {
+  background: linear-gradient(135deg, #ffb166, #ff4d00);
+  box-shadow: 0 14px 34px rgba(255, 77, 0, 0.28);
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.poster-noise {
+  background-image:
+    repeating-linear-gradient(115deg, rgba(255,255,255,0.045) 0 1px, transparent 1px 7px),
+    repeating-linear-gradient(25deg, rgba(0,0,0,0.05) 0 1px, transparent 1px 9px);
+}
+
+.cinematic-shadow {
+  box-shadow: 0 34px 100px rgba(0, 0, 0, 0.62);
+}
