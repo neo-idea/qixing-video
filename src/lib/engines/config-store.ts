@@ -1,6 +1,6 @@
 import { siteConfig } from "@/lib/config";
 import { findResult } from "@/lib/find-result";
-import type { SiteConfig, SubscriptionLine } from "@/lib/types";
+import type { SiteConfig, SourceBean, SubscriptionLine } from "@/lib/types";
 
 /**
  * 服务端配置解析与缓存(对应 APK oo0oO0.loadConfig 的服务端承载):
@@ -127,6 +127,30 @@ function parseLoose(text: string): unknown {
     return JSON.parse(stripTrailingCommas(out));
   }
 }
+/**
+ * 真实世界配置的 sites 常有重复/空缺 key(TVBox 客户端仅取首个匹配), 而 Web 端
+ * key 同时承担 React key、状态索引与路由参数, 必须全局唯一。此处在加载
+ * 入口统一规范化: 空 key 补位、重复 key 加序号后缀、type 宽松转数值。
+ */
+function normalizeSites(json: SiteConfig): SiteConfig {
+  const seen = new Set<string>();
+  json.sites = json.sites
+    .filter((site) => site && typeof site === "object")
+    .map((site, index) => {
+      let key = (site.key ?? "").toString().trim();
+      if (!key) key = `site_${index + 1}`;
+      if (seen.has(key)) {
+      let n = 2;
+        while (seen.has(`${key}_${n}`)) n++;
+        key = `${key}_${n}`;
+      }
+      seen.add(key);
+      const type = Number(site.type);
+      return { ...site, key, type: (Number.isFinite(type) ? type : 3) as SourceBean["type"] };
+    });
+  return json;
+}
+
 /** 下载并解密一份 TVBox 配置; 解析结果不含 sites 时抛错 */
 export async function fetchSiteConfig(raw: string): Promise<SiteConfig> {
   const [addr, pk] = raw.includes(";pk;") ? raw.split(";pk;") : [raw, null];
@@ -147,7 +171,7 @@ export async function fetchSiteConfig(raw: string): Promise<SiteConfig> {
   json.parses ??= [];
   json.flags ??= [];
   json.rules ??= [];
-  return json;
+  return normalizeSites(json);
 }
 
 /** 带 TTL 缓存的配置解析, 供 /api/config/load 与各站点路由共用 */
