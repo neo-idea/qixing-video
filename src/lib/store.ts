@@ -6,6 +6,7 @@ import type { SiteConfig, SubscriptionLine } from "@/lib/types";
 const API_URL_KEY = "qx_api_url";
 const SITE_KEY_KEY = "qx_site_key";
 const LINE_URL_KEY = "qx_line_url";
+const LINE_NAME_KEY = "qx_line_name";
 const COOKIE_NAME = "qx_api_url";
 
 type LoadResult = SiteConfig & { error?: string; remote?: boolean; requestedUrl?: string };
@@ -26,6 +27,7 @@ export function useConfig() {
   const [lines, setLines] = useState<SubscriptionLine[]>([]);
   const [apiUrl, setApiUrlState] = useState("");
   const [lineUrl, setLineUrlState] = useState("");
+  const [lineName, setLineNameState] = useState("");
 
   const load = useCallback(async (url: string) => {
     setLoading(true);
@@ -43,6 +45,8 @@ export function useConfig() {
       const saved = localStorage.getItem(SITE_KEY_KEY) ?? "";
       const first = json.sites.find((s) => s.key === saved) ?? json.sites[0];
       if (first) setSiteKeyState(first.key);
+    } catch {
+      setNotice("接口源请求失败，请检查网络后重试；当前可能显示旧配置");
     } finally {
       setLoading(false);
     }
@@ -53,6 +57,7 @@ export function useConfig() {
     const savedLine = localStorage.getItem(LINE_URL_KEY) ?? "";
     setApiUrlState(savedApi);
     setLineUrlState(savedLine);
+    setLineNameState(localStorage.getItem(LINE_NAME_KEY) ?? "");
     load(savedLine || savedApi);
   }, [load]);
 
@@ -60,27 +65,40 @@ export function useConfig() {
     (url: string) => {
       localStorage.setItem(API_URL_KEY, url);
       localStorage.removeItem(LINE_URL_KEY);
+      localStorage.removeItem(LINE_NAME_KEY);
       setApiUrlState(url);
       setLineUrlState("");
+      setLineNameState("");
       load(url);
     },
     [load]
   );
 
-  /** 多线路订阅: 选择具体线路后以该线路为当前配置 */
+  /** 多线路订阅: 选择具体线路后以该线路为当前配置, 线路名一并持久化便于回显 */
   const pickLine = useCallback(
-    (url: string) => {
-      localStorage.setItem(LINE_URL_KEY, url);
-      setLineUrlState(url);
-      load(url);
+    (line: SubscriptionLine) => {
+      localStorage.setItem(LINE_URL_KEY, line.url);
+      localStorage.setItem(LINE_NAME_KEY, line.name);
+      setLineUrlState(line.url);
+      setLineNameState(line.name);
+      load(line.url);
     },
     [load]
   );
+
+  /** 回到订阅线路选择: 清除已选线路, 重新加载订阅列表 */
+  const resetLine = useCallback(() => {
+    localStorage.removeItem(LINE_URL_KEY);
+    localStorage.removeItem(LINE_NAME_KEY);
+    setLineUrlState("");
+    setLineNameState("");
+    load(localStorage.getItem(API_URL_KEY) ?? "");
+  }, [load]);
 
   const setSiteKey = useCallback((key: string) => {
     localStorage.setItem(SITE_KEY_KEY, key);
     setSiteKeyState(key);
   }, []);
 
-  return { config, siteKey, setSiteKey, setApiUrl, loading, notice, lines, lineUrl, apiUrl, pickLine };
+  return { config, siteKey, setSiteKey, setApiUrl, loading, notice, lines, lineUrl, lineName, apiUrl, pickLine, resetLine };
 }

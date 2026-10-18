@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Chip, Panel } from "@/components/ui";
 import { useConfig } from "@/lib/store";
 import type { SourceBean } from "@/lib/types";
@@ -20,9 +20,14 @@ function engineOf(site: SourceBean, remote?: boolean) {
 }
 
 export function SettingsClient() {
-  const { config, siteKey, setSiteKey, setApiUrl, loading, notice, lines, lineUrl, pickLine } = useConfig();
+  const { config, siteKey, setSiteKey, setApiUrl, loading, notice, lines, lineUrl, lineName, apiUrl, pickLine, resetLine } = useConfig();
   const [url, setUrl] = useState("");
   const remote = Boolean(config?.remote);
+
+  // 刷新/导入后回显当前已保存的订阅地址
+  useEffect(() => {
+    if (apiUrl) setUrl(apiUrl);
+  }, [apiUrl]);
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -58,6 +63,35 @@ export function SettingsClient() {
         </div>
       </Panel>
 
+      {/* 当前连接状态: 刷新后仍可见, 配置不会“凭空消失” */}
+      {apiUrl ? (
+        <Panel className="mb-4 flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className={`h-2 w-2 shrink-0 rounded-full ${remote ? "bg-cinema-success" : "bg-cinema-warning"}`} />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium text-cinema-primary">
+                {remote
+                  ? lineUrl
+                    ? `已连接线路: ${lineName || "自定义线路"}`
+                    : "已连接外部配置"
+                  : loading ? "正在连接外部配置…" : "外部配置未生效，当前为内置演示源"}
+              </p>
+              <p className="mt-0.5 truncate font-mono text-[10px] text-cinema-subtle">{lineUrl || apiUrl}</p>
+            </div>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            {lineUrl ? (
+              <Button variant="secondary" size="sm" className="rounded active:scale-[0.97]" onClick={resetLine} disabled={loading}>
+                重新选择线路
+              </Button>
+            ) : null}
+            <Button variant="ghost" size="sm" className="rounded active:scale-[0.97]" onClick={() => setApiUrl("")} disabled={loading}>
+              断开，用内置源
+            </Button>
+          </div>
+        </Panel>
+      ) : null}
+
       {lines.length ? (
         <Panel className="mb-4 p-4">
           <div className="mb-3 flex items-center justify-between gap-3">
@@ -71,7 +105,7 @@ export function SettingsClient() {
             {lines.map((line) => (
               <button
                 key={line.url}
-                onClick={() => pickLine(line.url)}
+                onClick={() => pickLine(line)}
                 disabled={loading || lineUrl === line.url}
                 className={`flex min-h-[56px] flex-col justify-center gap-1 rounded p-3 text-left transition duration-150 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${
                   lineUrl === line.url
