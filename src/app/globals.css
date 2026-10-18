@@ -2,40 +2,36 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 腾讯视频设计令牌(取自 v.qq.com 线上实测): 暗色页面 + 品牌青 + 热榜橙 */
 :root {
   color-scheme: dark;
-  --surface-page: #08080b;
-  --surface-panel: rgba(15, 15, 20, 0.92);
-  --surface-elevated: rgba(255, 255, 255, 0.05);
-  --text-primary: #ffffff;
-  --text-muted: #a1a1aa;
-  --text-subtle: #71717a;
-  --brand-300: #ffb66e;
-  --brand-500: #ff5e00;
-  --brand-600: #d92c00;
+  --surface-page: #141414;
+  --surface-panel: #1f1f1f;
+  --surface-elevated: #212223;
+  --text-primary: #e6e9f0;
+  --text-muted: #a8a8a8;
+  --text-subtle: #818181;
+  --brand-300: #4ce4e4;
+  --brand-500: #00d1d1;
+  --brand-600: #02bfbf;
+  --hot: #ff6022;
   --success: #34d399;
-  --warning: #fbbf24;
+  --warning: #ffdc14;
   --danger: #f87171;
-  --accent-blue: #2d5bff;
   --border-subtle: rgba(255, 255, 255, 0.08);
-  --shadow-panel: 0 22px 60px rgba(0, 0, 0, 0.34);
-  --shadow-cinematic: 0 34px 100px rgba(0, 0, 0, 0.62);
-  --shadow-brand: 0 14px 34px rgba(255, 94, 0, 0.28);
+  --shadow-panel: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-cinematic: 0 16px 48px rgba(0, 0, 0, 0.5);
+  --shadow-brand: 0 6px 18px rgba(0, 209, 209, 0.22);
 }
 
 body {
-  background:
-    radial-gradient(900px 500px at 15% -8%, rgba(255, 77, 0, 0.18), transparent 70%),
-    radial-gradient(900px 600px at 90% 0%, rgba(45, 91, 255, 0.12), transparent 72%),
-    var(--surface-page);
+  background: var(--surface-page);
   font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", system-ui, sans-serif;
+  color: var(--text-primary);
 }
 
 .cinema-backdrop {
-  background:
-    radial-gradient(1000px 600px at 18% -10%, color-mix(in srgb, var(--brand-500) 18%, transparent), transparent 70%),
-    radial-gradient(1000px 700px at 88% 0%, color-mix(in srgb, var(--accent-blue) 13%, transparent), transparent 72%),
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-page) 42%, transparent), color-mix(in srgb, var(--surface-page) 94%, transparent));
+  background: var(--surface-page);
 }
 
 ::-webkit-scrollbar {
@@ -44,23 +40,28 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #3d3d49, #26262e);
+  background: #2f2f2f;
   border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #565664;
+  background: #3d3d3d;
 }
 
+/* 腾讯式卡片: 扁平深色面板, 6px 小圆角, 无毛玻璃光晕 */
 .panel {
   border: 1px solid var(--border-subtle);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018)), var(--surface-panel);
-  box-shadow: var(--shadow-panel);
-  backdrop-filter: blur(18px);
+  background: var(--surface-panel);
+  box-shadow: none;
 }
 
+/* 腾讯式主按钮: 品牌青实底 + 深青文字, 小圆角 */
 .brand-button {
-  background: linear-gradient(135deg, var(--brand-300), var(--brand-500));
+  background: linear-gradient(90deg, var(--brand-500), var(--brand-600));
+  color: #063434;
   box-shadow: var(--shadow-brand);
+}
+.brand-button:hover {
+  filter: brightness(1.08);
 }
 
 :focus-visible {
@@ -86,28 +87,12 @@ body {
   display: none;
 }
 
-.poster-noise {
-  background-image:
-    repeating-linear-gradient(115deg, rgba(255,255,255,0.045) 0 1px, transparent 1px 7px),
-    repeating-linear-gradient(25deg, rgba(0,0,0,0.05) 0 1px, transparent 1px 9px);
+.poster-fallback {
+  background: linear-gradient(155deg, #262626 0%, #1a1a1a 100%);
 }
 
 .cinematic-shadow {
   box-shadow: var(--shadow-cinematic);
-}
-
-.channel-card::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.08) 48%, transparent 62%);
-  transform: translateX(-120%);
-  transition: transform 700ms ease;
-}
-
-.channel-card:hover::after,
-.channel-card:focus-visible::after {
-  transform: translateX(120%);
 }
 
 @keyframes loading-slide {

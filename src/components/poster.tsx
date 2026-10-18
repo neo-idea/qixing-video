@@ -1,32 +1,44 @@
+"use client";
+
+import { useState } from "react";
 import type { VodItem } from "@/lib/types";
 
-export function Poster({ item, wide = false, compact = false }: { item: VodItem; wide?: boolean; compact?: boolean }) {
+/**
+ * 海报: 优先加载源站真实图片(vod_pic), 失败回退深色占位。
+ * 腾讯视频式: 小圆角、右下角集数/状态、左上评分, 无多余装饰。
+ */
+export function Poster({ item }: { item: VodItem; compact?: boolean }) {
+  const [failed, setFailed] = useState(false);
+  const hasPic = Boolean(item.vod_pic) && !failed;
+
   return (
-    <div
-      className={`poster-noise relative w-full overflow-hidden ${wide ? "aspect-video" : "aspect-[2/3]"}`}
-      style={{
-        background: `radial-gradient(120% 80% at 20% 0%, ${item.gradient[1]} 0%, transparent 58%), linear-gradient(155deg, ${item.gradient[0]} 0%, var(--surface-page) 96%)`,
-      }}
-    >
-      <div aria-hidden className="absolute -right-4 top-3 select-none text-[110px] leading-none opacity-20 blur-[0.5px] sm:text-[135px]">
-        {item.vod_pic}
-      </div>
-      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/45 to-transparent" />
-      <div className="absolute inset-x-0 top-0 h-1" style={{ background: `linear-gradient(90deg, ${item.gradient[1]}, transparent)` }} />
-      {!compact ? (
-        <div className="absolute inset-x-0 bottom-0 p-3">
-          <p className="truncate text-[13px] font-bold tracking-wide text-white drop-shadow">{item.vod_name}</p>
-          <p className="mt-1 truncate text-[10px] text-white/60">{item.year} · {item.area}</p>
+    <div className="poster-fallback relative aspect-[2/3] w-full overflow-hidden rounded-md bg-[#262626]">
+      {hasPic ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={item.vod_pic}
+          alt={item.vod_name}
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          onError={() => setFailed(true)}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      ) : (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-3 text-center">
+          <span className="line-clamp-3 text-sm font-bold text-cinema-muted">{item.vod_name}</span>
+          <span className="text-[11px] text-cinema-subtle">{item.category || item.year}</span>
         </div>
-      ) : null}
+      )}
       {item.vod_score ? (
-        <span className="absolute left-2 top-2 rounded-md border border-white/15 bg-black/60 px-1.5 py-0.5 text-[11px] font-black text-cinema-brand-soft backdrop-blur">
+        <span className="absolute left-1.5 top-1.5 rounded bg-black/70 px-1 py-0.5 text-[11px] font-bold text-cinema-warning">
           {item.vod_score}
         </span>
       ) : null}
-      <span className="absolute right-2 top-2 max-w-[62%] truncate rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-white/75 backdrop-blur">
-        {item.vod_remarks}
-      </span>
+      {item.vod_remarks ? (
+        <span className="absolute bottom-1.5 right-1.5 max-w-[75%] truncate rounded bg-black/70 px-1 py-0.5 text-[10px] text-white/90">
+          {item.vod_remarks}
+        </span>
+      ) : null}
     </div>
   );
 }

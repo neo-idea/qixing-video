@@ -41,9 +41,9 @@ export function VideoPlayer({ src, poster, title, sourceLabel }: { src: string; 
   }, [src, attempt]);
 
   return (
-    <div className="relative overflow-hidden rounded-xl bg-black ring-1 ring-white/12 cinematic-shadow sm:rounded-[18px]">
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-20 bg-gradient-to-b from-black/75 to-transparent" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-24 bg-gradient-to-t from-black/80 to-transparent" />
+    <div className="relative overflow-hidden rounded-md bg-black ring-1 ring-white/10">
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-16 bg-gradient-to-b from-black/70 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-20 bg-gradient-to-t from-black/75 to-transparent" />
       {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
       <video
         ref={ref}

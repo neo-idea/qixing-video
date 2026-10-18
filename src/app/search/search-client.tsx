@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { VideoCard } from "@/components/video-card";
-import { Button, Chip, EmptyState, Eyebrow, LinkButton, Panel } from "@/components/ui";
+import { Button, Chip, EmptyState, LinkButton, Panel } from "@/components/ui";
 import { useConfig } from "@/lib/store";
 import type { SourceBean, VodItem } from "@/lib/types";
 
@@ -64,35 +64,33 @@ export function SearchClient({ q }: { q: string }) {
 
   return (
     <>
-      <Panel className="relative mb-6 overflow-hidden p-4 sm:p-6 lg:p-8">
-        <div aria-hidden className="absolute -right-16 -top-20 h-64 w-64 rounded-full bg-cinema-brand/14 blur-3xl" />
+      <Panel className="mb-5 p-4 sm:p-6">
         <div className="relative">
-          <Eyebrow wide>Global Search</Eyebrow>
-          <h1 className="mt-2 text-2xl font-black leading-tight tracking-tight text-white sm:mt-3 sm:text-4xl">
-            {q ? <>“<span className="brand-text">{q}</span>” 全源搜索</> : "搜索想看的每一部"}
+          <h1 className="text-xl font-bold leading-tight text-cinema-primary sm:text-2xl">
+            {q ? <>“<span className="text-cinema-brand-soft">{q}</span>” 全源搜索</> : "搜索想看的每一部"}
           </h1>
           <form
-            className="relative mt-5 flex flex-col gap-3 sm:mt-6 sm:flex-row"
+            className="relative mt-4 flex flex-col gap-3 sm:flex-row"
             onSubmit={(event) => {
               event.preventDefault();
               submit(keyword);
             }}
           >
-            <div className="flex h-12 flex-1 items-center rounded-full border border-white/10 bg-black/35 pl-4 transition focus-within:border-cinema-brand/60">
+            <div className="flex h-11 flex-1 items-center rounded bg-[#2a2a2a] px-3.5 transition focus-within:ring-1 focus-within:ring-cinema-brand/70">
               <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-cinema-subtle" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" strokeLinecap="round" /></svg>
               <input
                 ref={inputRef}
                 value={keyword}
                 onChange={(event) => setKeyword(event.target.value)}
                 placeholder="输入剧名、电影名或综艺名"
-                className="h-full w-full bg-transparent px-3 text-sm text-white outline-none placeholder:text-cinema-subtle"
+                className="h-full w-full bg-transparent px-3 text-sm text-cinema-primary outline-none placeholder:text-cinema-subtle"
               />
             </div>
-            <Button type="submit" size="lg" className="w-full sm:w-auto">开始搜索</Button>
+            <Button type="submit" size="lg" className="w-full rounded sm:w-auto">开始搜索</Button>
           </form>
 
-          <div className="no-scrollbar -mx-4 mt-4 flex items-center gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0">
-            <span className="shrink-0 text-[11px] font-semibold text-cinema-subtle">热搜</span>
+          <div className="no-scrollbar -mx-4 mt-3.5 flex items-center gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0">
+            <span className="shrink-0 text-[11px] text-cinema-subtle">热搜</span>
             {SUGGESTIONS.map((word) => (
               <button
                 key={word}
@@ -100,7 +98,7 @@ export function SearchClient({ q }: { q: string }) {
                   setKeyword(word);
                   submit(word);
                 }}
-                className="h-11 shrink-0 rounded-full border border-white/8 bg-white/5 px-4 text-[11px] text-cinema-muted transition hover:border-cinema-brand/40 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft"
+                className="h-9 shrink-0 rounded bg-[#2a2a2a] px-3.5 text-[11px] text-cinema-muted transition hover:bg-[#333] hover:text-cinema-brand-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft"
               >
                 {word}
               </button>
@@ -108,13 +106,13 @@ export function SearchClient({ q }: { q: string }) {
           </div>
 
           {q ? (
-            <div className="mt-5">
+            <div className="mt-4">
               <div className="flex items-center justify-between gap-3 text-[11px] text-cinema-subtle">
                 <span>{searching ? "正在并发请求所有可搜索源…" : "全源搜索完成"}</span>
                 <span>{done}/{total} · {resultCount} 条结果</span>
               </div>
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/8">
-                <div className="h-full rounded-full bg-gradient-to-r from-cinema-brand-soft to-cinema-brand-strong transition-all" style={{ width: total ? `${(done / total) * 100}%` : "0%" }} />
+              <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/8">
+                <div className="h-full rounded-full bg-cinema-brand transition-all" style={{ width: total ? `${(done / total) * 100}%` : "0%" }} />
               </div>
               <div className="no-scrollbar -mx-4 mt-3 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0">
                 {searchableSites.map((site) => {
@@ -142,26 +140,23 @@ export function SearchClient({ q }: { q: string }) {
           <Button variant="secondary" onClick={() => inputRef.current?.focus()}>聚焦搜索框</Button>
         </EmptyState>
       ) : searching && !groups.length ? (
-        <div className="grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 sm:gap-x-4 sm:gap-y-8 lg:grid-cols-5 xl:grid-cols-6">
+        <div className="grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3 sm:gap-x-4 sm:gap-y-6 lg:grid-cols-5 xl:grid-cols-6">
           {Array.from({ length: 12 }).map((_, index) => (
             <div key={index} className="space-y-2">
-              <div className="aspect-[2/3] animate-pulse rounded-2xl bg-white/5" />
-              <div className="h-3 w-4/5 animate-pulse rounded-full bg-white/5" />
-              <div className="h-2.5 w-2/5 animate-pulse rounded-full bg-white/5" />
+              <div className="aspect-[2/3] animate-pulse rounded-md bg-white/5" />
+              <div className="h-3 w-4/5 animate-pulse rounded bg-white/5" />
+              <div className="h-2.5 w-2/5 animate-pulse rounded bg-white/5" />
             </div>
           ))}
         </div>
       ) : groups.length ? (
         groups.map((group) => (
           <section key={group.site.key} className="mb-8 sm:mb-10">
-            <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-white/6 bg-white/4 px-3 py-2.5 sm:gap-4 sm:px-4">
-              <h2 className="flex min-w-0 items-center gap-3 text-base font-black text-white sm:text-lg">
-                <span className="h-5 w-1 shrink-0 rounded-full bg-gradient-to-b from-cinema-brand-soft to-cinema-brand-strong" />
-                <span className="truncate">{group.site.name}</span>
-              </h2>
+            <div className="mb-3.5 flex items-center justify-between gap-3">
+              <h2 className="min-w-0 truncate text-base font-bold text-cinema-primary sm:text-lg">{group.site.name}</h2>
               <Chip size="sm" className="text-[11px]">{group.list.length} 条</Chip>
             </div>
-            <div className="grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 sm:gap-x-4 sm:gap-y-8 lg:grid-cols-5 xl:grid-cols-6">
+            <div className="grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3 sm:gap-x-4 sm:gap-y-6 lg:grid-cols-5 xl:grid-cols-6">
               {group.list.map((item, index) => (
                 <VideoCard key={`${group.site.key}-${item.vod_id}-${index}`} item={item} site={group.site.key} />
               ))}

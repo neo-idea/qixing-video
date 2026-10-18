@@ -22,6 +22,7 @@ const config: Config = {
           success: "var(--success)",
           warning: "var(--warning)",
           danger: "var(--danger)",
+          hot: "var(--hot)",
         },
       },
       boxShadow: {

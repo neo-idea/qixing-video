@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Poster } from "@/components/poster";
-import { Chip, EmptyState, Eyebrow, LinkButton, Panel } from "@/components/ui";
+import { Chip, EmptyState, LinkButton, Panel } from "@/components/ui";
 import { useConfig } from "@/lib/store";
 import type { VodDetail, VodItem } from "@/lib/types";
 
@@ -52,14 +52,13 @@ export function DetailClient({ id, site }: { id: string; site?: string }) {
   if (cfgLoading || !detail) {
     return (
       <div className="space-y-5">
-        <div className="grid gap-4 rounded-3xl border border-white/8 bg-white/4 p-4 sm:grid-cols-[136px_1fr] sm:p-6">
-          <div className="aspect-[2/3] animate-pulse rounded-2xl bg-white/6" />
-          <div className="space-y-4 py-2">
-            <div className="h-3 w-24 animate-pulse rounded-full bg-white/6" />
-            <div className="h-8 w-4/5 animate-pulse rounded-xl bg-white/6" />
-            <div className="h-3 w-full animate-pulse rounded-full bg-white/6" />
-            <div className="h-3 w-2/3 animate-pulse rounded-full bg-white/6" />
-            <div className="h-11 w-40 animate-pulse rounded-full bg-white/6" />
+        <div className="flex flex-col gap-5 rounded-lg bg-cinema-panel p-4 sm:flex-row sm:p-6">
+          <div className="aspect-[2/3] w-32 shrink-0 animate-pulse rounded-md bg-white/5 sm:w-40" />
+          <div className="flex-1 space-y-4 py-2">
+            <div className="h-7 w-3/5 animate-pulse rounded bg-white/5" />
+            <div className="h-3 w-full animate-pulse rounded bg-white/5" />
+            <div className="h-3 w-2/3 animate-pulse rounded bg-white/5" />
+            <div className="h-10 w-36 animate-pulse rounded bg-white/5" />
           </div>
         </div>
         <p className="text-center text-xs text-cinema-subtle">正在读取影片详情…</p>
@@ -70,76 +69,73 @@ export function DetailClient({ id, site }: { id: string; site?: string }) {
 
   return (
     <>
-      <section className="relative -mx-3 -mt-4 overflow-hidden px-3 pb-8 pt-6 sm:-mx-4 sm:-mt-6 sm:px-4 sm:pb-10 sm:pt-10 lg:-mx-8 lg:px-8 lg:pt-16">
-        <div aria-hidden className="absolute inset-0 opacity-70" style={{ background: `radial-gradient(90% 100% at 75% 0%, ${detail.gradient[1]}, transparent 65%)` }} />
-        <div aria-hidden className="absolute -right-8 top-4 select-none text-[180px] leading-none opacity-[0.08] blur-[2px] sm:text-[340px]">{detail.vod_pic}</div>
-        <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-cinema-page/45 via-cinema-page/88 to-cinema-page" />
-        <div className="relative mx-auto flex max-w-[1480px] flex-row gap-4 md:gap-8">
-          <div className="relative w-[104px] shrink-0 sm:w-[136px] md:w-[180px] lg:w-[236px]">
-            <div className="absolute -inset-3 rounded-[28px] bg-cinema-brand/10 opacity-0 blur-2xl md:opacity-100" />
-            <div className="relative overflow-hidden rounded-xl ring-1 ring-white/15 cinematic-shadow sm:w-full md:rounded-3xl">
-            <Poster item={detail} compact />
-            </div>
-            <div className="absolute -bottom-3 left-1/2 hidden -translate-x-1/2 rounded-full border border-white/10 bg-black/80 px-3 py-1 text-[10px] font-semibold text-cinema-brand-soft backdrop-blur md:block">
-              {detail.vod_remarks}
+      <section className="relative -mx-3 -mt-4 overflow-hidden px-3 pb-7 pt-5 sm:-mx-4 sm:-mt-6 sm:px-4 sm:pb-9 sm:pt-8 lg:-mx-8 lg:px-8">
+        {detail.vod_pic ? (
+          <div aria-hidden className="absolute inset-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={detail.vod_pic} alt="" referrerPolicy="no-referrer" className="h-full w-full scale-110 object-cover object-top opacity-25 blur-md" />
+            <div className="absolute inset-0 bg-gradient-to-b from-cinema-page/60 via-cinema-page/85 to-cinema-page" />
+          </div>
+        ) : null}
+        <div className="relative mx-auto flex max-w-[1480px] flex-row gap-4 md:gap-7">
+          <div className="w-[104px] shrink-0 sm:w-[136px] md:w-[170px] lg:w-[210px]">
+            <div className="overflow-hidden rounded-md ring-1 ring-white/10">
+              <Poster item={detail} compact />
             </div>
           </div>
-          <div className="min-w-0 flex-1 self-center pt-0 md:self-auto md:pt-1">
-            <div className="mb-3 flex flex-wrap gap-1.5 text-xs sm:mb-4 sm:gap-2">
-              <Chip tone="brand" size="sm" className="font-black">{detail.vod_score}</Chip>
+          <div className="min-w-0 flex-1 self-center">
+            <div className="mb-2.5 flex flex-wrap gap-1.5 text-xs">
+              {detail.vod_score ? <Chip tone="warning" size="sm" className="font-bold">{detail.vod_score}</Chip> : null}
               <Chip size="sm">{detail.year}</Chip>
               <Chip size="sm">{detail.area}</Chip>
               <Chip size="sm">{detail.category}</Chip>
-              <Chip tone="success" size="sm">
+              <Chip tone="brand" size="sm">
                 源: {config?.sites.find((source) => source.key === key)?.name ?? key}
               </Chip>
             </div>
-            <h1 className="mb-3 line-clamp-2 bg-gradient-to-r from-white via-white to-white/70 bg-clip-text text-2xl font-black leading-tight tracking-tight text-transparent sm:mb-5 sm:text-4xl lg:text-6xl">{detail.vod_name}</h1>
-            <dl className="mb-4 hidden gap-2 md:mb-6 md:grid md:grid-cols-2">
-              <div className="rounded-2xl border border-white/8 bg-black/25 p-3 backdrop-blur">
-                <dt className="text-[10px] font-semibold uppercase tracking-widest text-cinema-subtle">Director</dt>
-                <dd className="mt-1 line-clamp-2 text-sm text-cinema-muted">{detail.director || "暂无资料"}</dd>
+            <h1 className="mb-2.5 line-clamp-2 text-xl font-bold leading-tight text-cinema-primary sm:text-3xl lg:text-4xl">{detail.vod_name}</h1>
+            <dl className="mb-3 hidden gap-2 md:grid md:grid-cols-2">
+              <div className="rounded-md bg-cinema-panel/80 px-3 py-2">
+                <dt className="text-[10px] text-cinema-subtle">导演</dt>
+                <dd className="mt-0.5 line-clamp-2 text-sm text-cinema-muted">{detail.director || "暂无资料"}</dd>
               </div>
-              <div className="rounded-2xl border border-white/8 bg-black/25 p-3 backdrop-blur">
-                <dt className="text-[10px] font-semibold uppercase tracking-widest text-cinema-subtle">Starring</dt>
-                <dd className="mt-1 line-clamp-2 text-sm text-cinema-muted">{detail.actors || "暂无资料"}</dd>
+              <div className="rounded-md bg-cinema-panel/80 px-3 py-2">
+                <dt className="text-[10px] text-cinema-subtle">主演</dt>
+                <dd className="mt-0.5 line-clamp-2 text-sm text-cinema-muted">{detail.actors || "暂无资料"}</dd>
               </div>
             </dl>
-            <p className={`mb-4 max-w-3xl text-xs leading-6 text-cinema-muted sm:text-sm sm:leading-7 ${expanded ? "" : "line-clamp-3"}`}>{detail.content}</p>
-            <button onClick={() => setExpanded((value) => !value)} className="mb-5 h-11 rounded-full px-4 text-[11px] font-semibold text-cinema-brand-soft transition hover:bg-white/6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft sm:mb-7">
+            <p className={`mb-4 max-w-3xl text-xs leading-6 text-cinema-muted sm:text-sm ${expanded ? "" : "line-clamp-3"}`}>{detail.content}</p>
+            <button onClick={() => setExpanded((value) => !value)} className="mb-4 h-9 rounded px-3 text-xs font-medium text-cinema-brand-soft transition hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft">
               {expanded ? "收起简介" : "展开完整简介"}
             </button>
-            <div className="flex flex-wrap gap-2.5 sm:gap-3">
-              <LinkButton href={`/play/${detail.vod_id}/0-0?site=${key}`} size="lg" className="flex-1 sm:flex-none">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <LinkButton href={`/play/${detail.vod_id}/0-0?site=${key}`} size="lg" className="rounded">
                 <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor"><path d="M8 5.14v13.72a1 1 0 0 0 1.5.86l11-6.86a1 1 0 0 0 0-1.72l-11-6.86a1 1 0 0 0-1.5.86Z"/></svg>
                 立即播放
               </LinkButton>
-              <Chip size="lg" className="min-w-0 flex-1 justify-center sm:hidden">{detail.vod_remarks}</Chip>
+              <Chip size="lg">{detail.vod_remarks}</Chip>
             </div>
           </div>
         </div>
       </section>
 
-      <div className="grid gap-5 lg:grid-cols-[1fr_340px] xl:grid-cols-[1fr_360px]">
+      <div className="grid gap-5 lg:grid-cols-[1fr_300px] xl:grid-cols-[1fr_320px]">
         <div className="space-y-5">
           {detail.vod_play_from.map((from, sourceIndex) => (
-            <Panel key={from} className="p-4 sm:p-5">
-              <div className="mb-4 flex items-center justify-between gap-3 border-b border-white/6 pb-4">
-                <div>
-                  <Eyebrow>Play List</Eyebrow>
-                  <h2 className="mt-1.5 text-lg font-black text-white">{from}</h2>
-                </div>
-                <Chip size="sm" className="text-[11px]">{detail.vod_play_url[sourceIndex]?.length ?? 0} 集</Chip>
+            <Panel key={from} className="p-3.5 sm:p-4">
+              <div className="mb-3 flex items-center justify-between gap-3 border-b border-white/6 pb-2.5">
+                <h2 className="text-base font-bold text-cinema-primary">{from}</h2>
+                <Chip size="sm">{detail.vod_play_url[sourceIndex]?.length ?? 0} 集</Chip>
               </div>
-              <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-2.5 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8">
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8">
                 {detail.vod_play_url[sourceIndex].map((episode, episodeIndex) => (
                   <Link
                     key={`${episode.name}-${episodeIndex}`}
                     href={`/play/${detail.vod_id}/${sourceIndex}-${episodeIndex}?site=${key}`}
-                    className="group relative min-h-11 overflow-hidden rounded-xl border border-white/8 bg-white/4 px-3 py-3 text-center text-xs text-cinema-muted transition hover:-translate-y-0.5 hover:border-cinema-brand/45 hover:bg-cinema-brand/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft"
+                    className="group relative min-h-10 overflow-hidden rounded border border-white/8 bg-[#2a2a2a] px-2 text-center text-xs leading-10 text-cinema-muted transition hover:border-cinema-brand/60 hover:bg-cinema-brand/10 hover:text-cinema-brand-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft"
                   >
-                    {episode.name}
-                    {episode.parse === 1 ? <span className="absolute right-1 top-1 text-[9px] font-bold text-cinema-brand-soft">JX</span> : null}
+                    <span className="block truncate">{episode.name}</span>
+                    {episode.parse === 1 ? <span className="absolute right-1 top-0.5 text-[9px] font-bold text-cinema-hot">JX</span> : null}
                   </Link>
                 ))}
               </div>
@@ -147,34 +143,33 @@ export function DetailClient({ id, site }: { id: string; site?: string }) {
           ))}
         </div>
 
-        <Panel className="h-fit p-4 sm:p-5 lg:sticky lg:top-[92px]">
-          <div className="mb-4 border-b border-white/6 pb-4">
-            <Eyebrow>Change Source</Eyebrow>
-            <h2 className="mt-1.5 text-lg font-black text-white">同名影片换源</h2>
+        <Panel className="h-fit p-3.5 sm:p-4 lg:sticky lg:top-[76px]">
+          <div className="mb-2.5 border-b border-white/6 pb-2.5">
+            <h2 className="text-base font-bold text-cinema-primary">同名影片换源</h2>
           </div>
           {sources.length ? (
-            <div className="space-y-2">
+            <div className="space-y-1">
               {sources.map((source) => (
-                <Link key={source.site} href={`/detail/${source.item.vod_id}?site=${source.site}`} className="flex items-center gap-3 rounded-xl border border-white/7 bg-white/4 p-3 transition hover:border-cinema-brand/40 hover:bg-white/8 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft">
-                  <span className="h-[64px] w-11 overflow-hidden rounded-md"><Poster item={source.item} compact /></span>
+                <Link key={source.site} href={`/detail/${source.item.vod_id}?site=${source.site}`} className="flex items-center gap-2.5 rounded p-1.5 transition hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft">
+                  <span className="h-[57px] w-10 overflow-hidden rounded-sm"><Poster item={source.item} compact /></span>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-semibold text-cinema-primary">{source.name}</span>
-                    <span className="mt-1 block truncate text-[11px] text-cinema-subtle">{source.item.vod_remarks}</span>
+                    <span className="block truncate text-sm font-medium text-cinema-primary">{source.name}</span>
+                    <span className="mt-0.5 block truncate text-[11px] text-cinema-subtle">{source.item.vod_remarks}</span>
                   </span>
-                  <span className="text-xs font-black text-cinema-brand-soft">{source.item.vod_score}</span>
+                  {source.item.vod_score ? <span className="text-xs font-bold text-cinema-warning">{source.item.vod_score}</span> : null}
                 </Link>
               ))}
             </div>
           ) : (
-            <div className="space-y-3 rounded-xl bg-white/4 p-4">
-              <div className="flex items-center gap-3">
-                <span className="h-2 w-2 animate-pulse rounded-full bg-cinema-brand" />
+            <div className="space-y-3 rounded p-2">
+              <div className="flex items-center gap-2.5">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cinema-brand" />
                 <p className="text-xs text-cinema-subtle">正在并发搜索其他源的同名影片</p>
               </div>
-              {Array.from({ length: 2 }).map((_, index) => (
-                <div key={index} className="flex items-center gap-3">
-                  <div className="h-14 w-10 animate-pulse rounded-md bg-white/6" />
-                  <div className="h-3 flex-1 animate-pulse rounded-full bg-white/6" />
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div key={index} className="flex items-center gap-2.5">
+                  <div className="h-14 w-10 animate-pulse rounded-sm bg-white/5" />
+                  <div className="h-3 flex-1 animate-pulse rounded bg-white/5" />
                 </div>
               ))}
             </div>
