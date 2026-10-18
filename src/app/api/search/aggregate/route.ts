@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { getCSP } from "@/lib/engines/registry";
 import { withSourceList } from "@/lib/with-source";
 import { aggregateSearch } from "@/lib/search-aggregate";
-import type { VodItem } from "@/lib/types";
 
 /**
  * 聚合搜索端点: POST { q, sources: [{url, key, name}] }
