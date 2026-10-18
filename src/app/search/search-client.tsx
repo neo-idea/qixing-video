@@ -36,41 +36,23 @@ export function SearchClient({ q }: { q: string }) {
     setDone(0);
     setStatuses(Object.fromEntries(sites.map((site) => [`${site.origin ?? ""}::${site.key}`, "searching"])));
 
-    // 服务端聚合: 8s 单源超时 + 熔断(3 失败歇 5min) + 5min 结果缓存
-    fetch("/api/search/aggregate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        q,
-        sources: sites.map((site) => ({ url: site.origin ?? "", key: site.key, name: site.name })),
-      }),
-    })
-      .then(async (response) => {
-        const data = await response.json();
-        if (!alive) return;
-        const siteByKey = new Map(sites.map((site) => [`${site.origin ?? ""}::${site.key}`, site]));
-        const nextGroups: Group[] = [];
-        const nextStatuses: Record<string, SiteStatus> = {};
-        for (const g of data.groups ?? []) {
-          const site = siteByKey.get(`${g.origin}::${g.siteKey}`);
-          if (site) nextGroups.push({ site, list: g.list });
-        }
-        const hitRefs = new Set((data.groups ?? []).map((g: { origin: string; siteKey: string }) => `${g.origin}::${g.siteKey}`));
-        for (const site of sites) {
-          const ref = `${site.origin ?? ""}::${site.key}`;
-          nextStatuses[ref] = hitRefs.has(ref) ? "hit" : "empty";
-        }
-        setGroups(nextGroups);
-        setStatuses(nextStatuses);
-        setDone(sites.length);
-      })
-      .catch(() => {
-        if (!alive) return;
-        const nextStatuses: Record<string, SiteStatus> = {};
-        for (const site of sites) nextStatuses[`${site.origin ?? ""}::${site.key}`] = "error";
-        setStatuses(nextStatuses);
-        setDone(sites.length);
-      });
+    sites.forEach((site) => {
+      const from = site.origin ? `&from=${encodeURIComponent(site.origin)}` : "";
+      fetch(`/api/site/${site.key}/search?key=${encodeURIComponent(q)}${from}`)
+        .then(async (response) => {
+          const data = await response.json();
+          if (!alive) return;
+          const list: VodItem[] = data.list ?? [];
+          if (list.length) setGroups((previous) => [...previous, { site, list }]);
+          setStatuses((previous) => ({ ...previous, [`${site.origin ?? ""}::${site.key}`]: list.length ? "hit" : "empty" }));
+        })
+        .catch(() => {
+          if (alive) setStatuses((previous) => ({ ...previous, [`${site.origin ?? ""}::${site.key}`]: "error" }));
+        })
+        .finally(() => {
+          if (alive) setDone((count) => count + 1);
+        });
+    });
     return () => {
       alive = false;
     };
