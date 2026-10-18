@@ -4,8 +4,11 @@ import { Poster } from "./poster";
 
 /** 腾讯视频式卡片: 2:3 海报小圆角, 标题在卡片下方, hover 轻微上浮 + 青色标题 */
 export function VideoCard({ item, site, rank }: { item: VodItem; site?: string; rank?: number }) {
+  const key = site ?? item.sourceKey;
+  const origin = item.sourceOrigin;
+  const query = key ? `?site=${encodeURIComponent(key)}${origin ? `&from=${encodeURIComponent(origin)}` : ""}` : "";
   return (
-    <Link href={`/detail/${item.vod_id}${site ? `?site=${site}` : ""}`} className="group block outline-none focus-visible:ring-2 focus-visible:ring-cinema-brand-soft" aria-label={`${item.vod_name} 详情`}>
+    <Link href={`/detail/${item.vod_id}${query}`} className="group block outline-none focus-visible:ring-2 focus-visible:ring-cinema-brand-soft" aria-label={`${item.vod_name} 详情`}>
       <div className="relative overflow-hidden rounded-md bg-[#262626] transition duration-200 group-hover:-translate-y-1 group-active:scale-[0.98] group-active:translate-y-0 group-hover:shadow-cinematic">
         {typeof rank === "number" ? (
           <span className={`absolute left-0 top-0 z-10 rounded-br-md px-2 py-0.5 text-xs font-black italic ${rank <= 3 ? "bg-cinema-hot text-white" : "bg-black/70 text-cinema-muted"}`}>

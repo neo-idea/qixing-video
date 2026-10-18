@@ -21,10 +21,11 @@ const CHANNELS = [
 
 export function HomeClient() {
   const params = useSearchParams();
-  const { siteKey, loading: cfgLoading, notice } = useConfig();
+  const { siteKey, siteOrigin, config, loading: cfgLoading, notice } = useConfig();
   const [classes, setClasses] = useState<{ type_id: string; type_name: string }[]>([]);
   const [filters, setFilters] = useState<Record<string, CategoryFilter[]>>({});
-  const [homeList, setHomeList] = useState<VodItem[]>([]);
+  const [sourceHomeList, setSourceHomeList] = useState<VodItem[]>([]);
+  const [aggList, setAggList] = useState<VodItem[]>([]);
   const [list, setList] = useState<VodItem[]>([]);
   const [tid, setTid] = useState("");
   const [pg, setPg] = useState(1);
@@ -43,17 +44,39 @@ export function HomeClient() {
     }
   }, [c]);
 
+  /** 聚合首页: 启用配置中的 CMS 源并行拉取去重, 未选分类时展示 */
+  useEffect(() => {
+    const cmsSites = (config?.sites ?? []).filter((s) => (s.type === 0 || s.type === 4) && s.searchable !== 0).slice(0, 8);
+    if (!config?.remote || !cmsSites.length) return;
+    let cancelled = false;
+    fetch("/api/home/aggregate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sources: cmsSites.map((s) => ({ url: s.origin, key: s.key })) }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (cancelled) return;
+        setAggList(data.list ?? []);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [config]);
+
   useEffect(() => {
     if (!siteKey) return;
     let cancelled = false;
     setLoading(true);
-    fetch(`/api/site/${siteKey}/home`)
+    const from = siteOrigin ? `?from=${encodeURIComponent(siteOrigin)}` : "";
+    fetch(`/api/site/${siteKey}/home${from}`)
       .then((response) => response.json())
       .then((data) => {
         if (cancelled) return;
         setClasses(data.class ?? []);
         setFilters(data.filters ?? {});
-        setHomeList(data.list ?? []);
+        setSourceHomeList(data.list ?? []);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -61,13 +84,14 @@ export function HomeClient() {
     return () => {
       cancelled = true;
     };
-  }, [siteKey]);
+  }, [siteKey, siteOrigin]);
 
   useEffect(() => {
     if (!siteKey) return;
     let cancelled = false;
     setLoading(true);
     const query = new URLSearchParams({ tid, pg: String(pg), ...extend });
+    if (siteOrigin) query.set("from", siteOrigin);
     fetch(`/api/site/${siteKey}/category?${query}`)
       .then((response) => response.json())
       .then((data) => {
@@ -80,9 +104,19 @@ export function HomeClient() {
     return () => {
       cancelled = true;
     };
-  }, [siteKey, tid, pg, extend]);
+  }, [siteKey, siteOrigin, tid, pg, extend]);
 
   const tidFilters = useMemo(() => filters[tid] ?? [], [filters, tid]);
+  const homeList = useMemo(() => {
+    const seen = new Set<string>();
+    return [...sourceHomeList, ...aggList].filter((item) => {
+      const name = item.vod_name?.trim();
+      if (!name || seen.has(name)) return false;
+      seen.add(name);
+      return true;
+    });
+  }, [sourceHomeList, aggList]);
+
   const visible = useMemo(() => {
     const seen = new Set<string>();
     return (tid ? list : [...homeList, ...list]).filter((item) => {

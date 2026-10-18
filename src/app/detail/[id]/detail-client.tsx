@@ -7,9 +7,10 @@ import { Chip, EmptyState, LinkButton, Panel } from "@/components/ui";
 import { useConfig } from "@/lib/store";
 import type { VodDetail, VodItem } from "@/lib/types";
 
-export function DetailClient({ id, site }: { id: string; site?: string }) {
-  const { config, siteKey, loading: cfgLoading } = useConfig();
+export function DetailClient({ id, site, from }: { id: string; site?: string; from?: string }) {
+  const { config, siteKey, siteOrigin, loading: cfgLoading } = useConfig();
   const key = site ?? siteKey;
+  const origin = from ?? (site ? undefined : siteOrigin);
   const [detail, setDetail] = useState<VodDetail | null>(null);
   const [error, setError] = useState("");
   const [sources, setSources] = useState<{ site: string; name: string; item: VodItem }[]>([]);
@@ -21,7 +22,8 @@ export function DetailClient({ id, site }: { id: string; site?: string }) {
     setDetail(null);
     setError("");
     setSources([]);
-    fetch(`/api/site/${key}/detail?id=${encodeURIComponent(id)}`)
+    const originQuery = origin ? `&from=${encodeURIComponent(origin)}` : "";
+    fetch(`/api/site/${key}/detail?id=${encodeURIComponent(id)}${originQuery}`)
       .then(async (response) => {
         const data = await response.json();
         if (!response.ok) throw new Error(data.error ?? "加载失败");
@@ -30,8 +32,9 @@ export function DetailClient({ id, site }: { id: string; site?: string }) {
       })
       .then((data) => {
         (config?.sites ?? []).forEach((source) => {
-          if (source.key === key) return;
-          fetch(`/api/site/${source.key}/search?key=${encodeURIComponent(data.vod_name)}`)
+          if (source.key === key && source.origin === origin) return;
+          const q = source.origin ? `&from=${encodeURIComponent(source.origin)}` : "";
+          fetch(`/api/site/${source.key}/search?key=${encodeURIComponent(data.vod_name)}${q}`)
             .then((response) => response.json())
             .then((result) => {
               if (!alive) return;
@@ -47,7 +50,7 @@ export function DetailClient({ id, site }: { id: string; site?: string }) {
     return () => {
       alive = false;
     };
-  }, [id, key, config]);
+  }, [id, key, origin, config]);
 
   if (cfgLoading || !detail) {
     return (
@@ -109,7 +112,7 @@ export function DetailClient({ id, site }: { id: string; site?: string }) {
               {expanded ? "收起简介" : "展开完整简介"}
             </button>
             <div className="flex flex-wrap items-center gap-2.5">
-              <LinkButton href={`/play/${detail.vod_id}/0-0?site=${key}`} size="lg" className="rounded">
+              <LinkButton href={`/play/${detail.vod_id}/0-0?site=${encodeURIComponent(key)}${origin ? `&from=${encodeURIComponent(origin)}` : ""}`} size="lg" className="rounded">
                 <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor"><path d="M8 5.14v13.72a1 1 0 0 0 1.5.86l11-6.86a1 1 0 0 0 0-1.72l-11-6.86a1 1 0 0 0-1.5.86Z"/></svg>
                 立即播放
               </LinkButton>
@@ -131,7 +134,7 @@ export function DetailClient({ id, site }: { id: string; site?: string }) {
                 {detail.vod_play_url[sourceIndex].map((episode, episodeIndex) => (
                   <Link
                     key={`${episode.name}-${episodeIndex}`}
-                    href={`/play/${detail.vod_id}/${sourceIndex}-${episodeIndex}?site=${key}`}
+                    href={`/play/${detail.vod_id}/${sourceIndex}-${episodeIndex}?site=${encodeURIComponent(key)}${origin ? `&from=${encodeURIComponent(origin)}` : ""}`}
                     className="group relative min-h-10 overflow-hidden rounded border border-white/8 bg-[#2a2a2a] px-2 text-center text-xs leading-10 text-cinema-muted transition duration-150 active:scale-[0.95] hover:border-cinema-brand/60 hover:bg-cinema-brand/10 hover:text-cinema-brand-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft"
                   >
                     <span className="block truncate">{episode.name}</span>
@@ -150,7 +153,7 @@ export function DetailClient({ id, site }: { id: string; site?: string }) {
           {sources.length ? (
             <div className="space-y-1">
               {sources.map((source) => (
-                <Link key={source.site} href={`/detail/${source.item.vod_id}?site=${source.site}`} className="flex items-center gap-2.5 rounded p-1.5 transition duration-150 active:scale-[0.98] hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft">
+                <Link key={`${source.site}-${source.item.sourceOrigin ?? ""}`} href={`/detail/${source.item.vod_id}?site=${encodeURIComponent(source.site)}${source.item.sourceOrigin ? `&from=${encodeURIComponent(source.item.sourceOrigin)}` : ""}`} className="flex items-center gap-2.5 rounded p-1.5 transition duration-150 active:scale-[0.98] hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft">
                   <span className="h-[57px] w-10 overflow-hidden rounded-sm"><Poster item={source.item} compact /></span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-medium text-cinema-primary">{source.name}</span>

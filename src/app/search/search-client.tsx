@@ -34,19 +34,20 @@ export function SearchClient({ q }: { q: string }) {
     const sites = config.sites.filter((site) => site.searchable !== 0);
     setGroups([]);
     setDone(0);
-    setStatuses(Object.fromEntries(sites.map((site) => [site.key, "searching"])));
+    setStatuses(Object.fromEntries(sites.map((site) => [`${site.origin ?? ""}::${site.key}`, "searching"])));
 
     sites.forEach((site) => {
-      fetch(`/api/site/${site.key}/search?key=${encodeURIComponent(q)}`)
+      const from = site.origin ? `&from=${encodeURIComponent(site.origin)}` : "";
+      fetch(`/api/site/${site.key}/search?key=${encodeURIComponent(q)}${from}`)
         .then(async (response) => {
           const data = await response.json();
           if (!alive) return;
           const list: VodItem[] = data.list ?? [];
           if (list.length) setGroups((previous) => [...previous, { site, list }]);
-          setStatuses((previous) => ({ ...previous, [site.key]: list.length ? "hit" : "empty" }));
+          setStatuses((previous) => ({ ...previous, [`${site.origin ?? ""}::${site.key}`]: list.length ? "hit" : "empty" }));
         })
         .catch(() => {
-          if (alive) setStatuses((previous) => ({ ...previous, [site.key]: "error" }));
+          if (alive) setStatuses((previous) => ({ ...previous, [`${site.origin ?? ""}::${site.key}`]: "error" }));
         })
         .finally(() => {
           if (alive) setDone((count) => count + 1);
@@ -116,10 +117,11 @@ export function SearchClient({ q }: { q: string }) {
               </div>
               <div className="no-scrollbar -mx-4 mt-3 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0">
                 {searchableSites.map((site) => {
-                  const status = statuses[site.key];
+                  const ref = `${site.origin ?? ""}::${site.key}`;
+                  const status = statuses[ref];
                   return (
                     <Chip
-                      key={site.key}
+                      key={ref}
                       tone={status === "hit" ? "success" : status === "error" ? "warning" : status === "empty" ? "neutral" : "brand"}
                       size="sm"
                       className="shrink-0"
@@ -151,9 +153,9 @@ export function SearchClient({ q }: { q: string }) {
         </div>
       ) : groups.length ? (
         groups.map((group) => (
-          <section key={group.site.key} className="mb-8 sm:mb-10">
+          <section key={`${group.site.origin ?? ""}::${group.site.key}`} className="mb-8 sm:mb-10">
             <div className="mb-3.5 flex items-center justify-between gap-3">
-              <h2 className="min-w-0 truncate text-base font-bold text-cinema-primary sm:text-lg">{group.site.name}</h2>
+              <h2 className="min-w-0 truncate text-base font-bold text-cinema-primary sm:text-lg">{group.site.name}{group.site.originName ? <span className="ml-2 text-xs font-normal text-cinema-subtle">{group.site.originName}</span> : null}</h2>
               <Chip size="sm" className="text-[11px]">{group.list.length} 条</Chip>
             </div>
             <div className="grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3 sm:gap-x-4 sm:gap-y-6 lg:grid-cols-5 xl:grid-cols-6">

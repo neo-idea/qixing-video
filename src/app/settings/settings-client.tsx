@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button, Chip, Panel } from "@/components/ui";
-import { useConfig } from "@/lib/store";
+import { useConfig, siteRef } from "@/lib/store";
 import type { SourceBean } from "@/lib/types";
 
 const PARSE_LABEL: Record<number, string> = { 0: "网页嗅探", 1: "Json 解析", 2: "Json 并发", 3: "扩展解析" };
@@ -20,102 +20,110 @@ function engineOf(site: SourceBean, remote?: boolean) {
 }
 
 export function SettingsClient() {
-  const { config, siteKey, setSiteKey, setApiUrl, loading, notice, lines, lineUrl, lineName, apiUrl, pickLine, resetLine } = useConfig();
+  const {
+    sources,
+    config,
+    siteRef: currentRef,
+    setSiteKey,
+    addSource,
+    toggleSource,
+    removeSource,
+    clearAll,
+    loading,
+    notice,
+  } = useConfig();
   const [url, setUrl] = useState("");
+  const [importing, setImporting] = useState(false);
+  const [importMsg, setImportMsg] = useState("");
   const remote = Boolean(config?.remote);
+  const enabledCount = sources.filter((s) => s.enabled).length;
 
-  // 刷新/导入后回显当前已保存的订阅地址
-  useEffect(() => {
-    if (apiUrl) setUrl(apiUrl);
-  }, [apiUrl]);
+  const onImport = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const target = url.trim();
+    if (!target || importing) return;
+    setImporting(true);
+    setImportMsg("");
+    try {
+      const msg = await addSource(target);
+      setImportMsg(msg);
+      setUrl("");
+    } catch (e) {
+      setImportMsg(`导入失败: ${(e as Error).message}`);
+    } finally {
+      setImporting(false);
+    }
+  };
 
   return (
     <div className="mx-auto max-w-5xl">
       <Panel className="mb-4 p-4 sm:p-6">
-        <div className="relative">
         <h1 className="text-xl font-bold text-cinema-primary sm:text-2xl">接口源设置</h1>
         <p className="mt-2 max-w-2xl text-xs leading-relaxed text-cinema-subtle sm:text-sm">
-          对应 APK SettingActivity 的 api_url，支持 `地址;pk;密码`、Base64/AES 加密配置与 `urls` 多线路订阅。选择线路后，站点、解析接口与嗅探规则都会由该线路真实驱动（type 0/4 采集源真实请求，Spider/Jar 源需 TVBox 客户端）。
+          对应 APK SettingActivity 的 api_url，支持 `地址;pk;密码`、Base64/AES 加密配置、JSONC 注释配置与 `urls` 多线路订阅。可导入多份配置并行使用，按开关自由启停；启用配置的站点、解析接口与嗅探规则将合并生效（type 0/4 采集源真实请求，Spider/Jar 源需 TVBox 客户端）。
         </p>
-        <div className="mt-4 grid gap-2 sm:grid-cols-3">
+        <div className="mt-4 grid gap-2 sm:grid-cols-4">
+          <div className="rounded bg-[#2a2a2a] p-3"><p className="text-[11px] text-cinema-subtle">已导入配置</p><p className="mt-0.5 text-lg font-bold text-cinema-primary">{sources.length}</p></div>
+          <div className="rounded bg-[#2a2a2a] p-3"><p className="text-[11px] text-cinema-subtle">启用中</p><p className="mt-0.5 text-lg font-bold text-cinema-success">{enabledCount}</p></div>
           <div className="rounded bg-[#2a2a2a] p-3"><p className="text-[11px] text-cinema-subtle">站点源</p><p className="mt-0.5 text-lg font-bold text-cinema-primary">{config?.sites.length ?? 0}</p></div>
           <div className="rounded bg-[#2a2a2a] p-3"><p className="text-[11px] text-cinema-subtle">解析接口</p><p className="mt-0.5 text-lg font-bold text-cinema-primary">{config?.parses.length ?? 0}</p></div>
-          <div className="rounded bg-[#2a2a2a] p-3"><p className="text-[11px] text-cinema-subtle">嗅探规则</p><p className="mt-0.5 text-lg font-bold text-cinema-primary">{config?.rules.length ?? 0}</p></div>
         </div>
-        <form
-          className="mt-5 flex flex-col gap-3 sm:flex-row"
-          onSubmit={(event) => {
-            event.preventDefault();
-            setApiUrl(url.trim());
-          }}
-        >
+        <form className="mt-5 flex flex-col gap-3 sm:flex-row" onSubmit={onImport}>
           <input
             value={url}
             onChange={(event) => setUrl(event.target.value)}
-            placeholder="https://example.com/config.json 留空使用内置演示源"
+            placeholder="粘贴配置或订阅地址，可连续导入多份"
             className="h-11 w-full flex-1 rounded bg-[#2a2a2a] px-4 text-sm text-cinema-primary outline-none transition focus-visible:ring-1 focus-visible:ring-cinema-brand/70"
           />
-          <Button type="submit" size="lg" disabled={loading} className="w-full rounded sm:w-auto">
-            {loading ? "加载中…" : "保存并加载"}
+          <Button type="submit" size="lg" disabled={importing || !url.trim()} className="w-full rounded sm:w-auto">
+            {importing ? "导入中…" : "导入"}
           </Button>
         </form>
+        {importMsg ? (
+          <p className="mt-3 rounded border border-cinema-brand/25 bg-cinema-brand/10 p-2.5 text-xs text-cinema-brand-soft">{importMsg}</p>
+        ) : null}
         {notice ? <p className="mt-3 rounded border border-cinema-warning/25 bg-cinema-warning/10 p-2.5 text-xs text-cinema-warning">{notice}</p> : null}
-        </div>
       </Panel>
 
-      {/* 当前连接状态: 刷新后仍可见, 配置不会“凭空消失” */}
-      {apiUrl ? (
-        <Panel className="mb-4 flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex min-w-0 items-center gap-3">
-            <span className={`h-2 w-2 shrink-0 rounded-full ${remote ? "bg-cinema-success" : "bg-cinema-warning"}`} />
-            <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-cinema-primary">
-                {remote
-                  ? lineUrl
-                    ? `已连接线路: ${lineName || "自定义线路"}`
-                    : "已连接外部配置"
-                  : loading ? "正在连接外部配置…" : "外部配置未生效，当前为内置演示源"}
-              </p>
-              <p className="mt-0.5 truncate font-mono text-[10px] text-cinema-subtle">{lineUrl || apiUrl}</p>
-            </div>
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
-            {lineUrl ? (
-              <Button variant="secondary" size="sm" className="rounded active:scale-[0.97]" onClick={resetLine} disabled={loading}>
-                重新选择线路
-              </Button>
-            ) : null}
-            <Button variant="ghost" size="sm" className="rounded active:scale-[0.97]" onClick={() => setApiUrl("")} disabled={loading}>
-              断开，用内置源
-            </Button>
-          </div>
-        </Panel>
-      ) : null}
-
-      {lines.length ? (
+      {/* 配置列表: 开关 + 删除 */}
+      {sources.length ? (
         <Panel className="mb-4 p-4">
           <div className="mb-3 flex items-center justify-between gap-3">
             <div>
-              <h2 className="text-base font-bold text-cinema-primary">多线路订阅</h2>
-              <p className="mt-0.5 text-xs text-cinema-subtle">检测到 {lines.length} 条线路，选择后立即加载该线路配置</p>
+              <h2 className="text-base font-bold text-cinema-primary">配置管理</h2>
+              <p className="mt-0.5 text-xs text-cinema-subtle">开关决定该配置的站点是否参与合并；多份配置可同时启用</p>
             </div>
-            <Chip size="sm">{lines.length} 条</Chip>
+            <Button variant="ghost" size="sm" className="rounded active:scale-[0.97]" onClick={clearAll} disabled={loading}>
+              全部清空
+            </Button>
           </div>
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {lines.map((line) => (
-              <button
-                key={line.url}
-                onClick={() => pickLine(line)}
-                disabled={loading || lineUrl === line.url}
-                className={`flex min-h-[56px] flex-col justify-center gap-1 rounded p-3 text-left transition duration-150 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${
-                  lineUrl === line.url
-                    ? "border border-cinema-brand/50 bg-cinema-brand/12"
-                    : "border border-white/8 bg-[#2a2a2a] hover:bg-[#333]"
+          <div className="space-y-2">
+            {sources.map((entry) => (
+              <div
+                key={entry.id}
+                className={`flex min-h-[60px] items-center gap-3 rounded p-3 transition ${
+                  entry.enabled ? "border border-cinema-brand/30 bg-cinema-brand/8" : "border border-white/8 bg-[#2a2a2a]"
                 }`}
               >
-                <span className="text-sm font-medium text-cinema-primary">{line.name}</span>
-                <span className="truncate font-mono text-[10px] text-cinema-subtle">{line.url}</span>
-              </button>
+                <Switch checked={entry.enabled} onChange={() => toggleSource(entry.id)} label={`启用 ${entry.name}`} />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-cinema-primary">
+                    {entry.name}
+                    {entry.enabled ? <span className="ml-2 text-[10px] text-cinema-success">生效中</span> : null}
+                  </p>
+                  <p className="mt-0.5 truncate font-mono text-[10px] text-cinema-subtle">{entry.url}</p>
+                </div>
+                <button
+                  onClick={() => removeSource(entry.id)}
+                  disabled={loading}
+                  aria-label={`删除 ${entry.name}`}
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded text-cinema-subtle transition duration-150 active:scale-[0.94] hover:bg-cinema-danger/15 hover:text-cinema-danger focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft"
+                >
+                  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+                    <path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m3 0-1 14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1L5 6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              </div>
             ))}
           </div>
         </Panel>
@@ -125,7 +133,9 @@ export function SettingsClient() {
         <div className="mb-3 flex items-center justify-between gap-3">
           <div>
             <h2 className="text-base font-bold text-cinema-primary">站点源</h2>
-            <p className="mt-0.5 text-xs text-cinema-subtle">点击切换当前首页、搜索与详情使用的源；仅 CMS 采集源可在 Web 端真实请求</p>
+            <p className="mt-0.5 text-xs text-cinema-subtle">
+              {remote ? "多配置合并后的全部站点；仅 CMS 采集源可在 Web 端真实请求" : "当前为内置演示源，导入外部配置后可查看真实站点"}
+            </p>
           </div>
           <div className="flex shrink-0 items-center gap-1.5">
             {remote ? <Chip tone="success" size="sm">外部配置已生效</Chip> : <Chip size="sm">内置演示</Chip>}
@@ -133,30 +143,36 @@ export function SettingsClient() {
           </div>
         </div>
         <div className="grid gap-2 sm:grid-cols-2">
-          {config?.sites.map((site) => (
-            <button
-              key={site.key}
-              onClick={() => setSiteKey(site.key)}
-              className={`flex min-h-[64px] w-full items-center gap-3 rounded p-3 text-left transition duration-150 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${
-                site.key === siteKey ? "border border-cinema-brand/50 bg-cinema-brand/12" : "border border-white/8 bg-[#2a2a2a] hover:bg-[#333]"
-              }`}
-            >
-              <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-sm text-xs font-bold ${site.key === siteKey ? "bg-cinema-brand/20 text-cinema-brand-soft" : "bg-[#333] text-cinema-primary"}`}>{site.name.slice(0, 2)}</span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-medium text-cinema-primary">{site.name}</span>
-                <span className="mt-0.5 block truncate font-mono text-[10px] text-cinema-subtle">{site.api}</span>
-              </span>
-              <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] ${
-                site.key === siteKey
-                  ? "bg-cinema-brand/20 text-cinema-brand-soft"
-                  : engineOf(site, remote).ok
+          {config?.sites.map((site) => {
+            const ref = siteRef(site.origin ?? "", site.key);
+            const active = ref === currentRef;
+            return (
+              <button
+                key={ref}
+                onClick={() => setSiteKey(ref)}
+                className={`flex min-h-[64px] w-full items-center gap-3 rounded p-3 text-left transition duration-150 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${
+                  active ? "border border-cinema-brand/50 bg-cinema-brand/12" : "border border-white/8 bg-[#2a2a2a] hover:bg-[#333]"
+                }`}
+              >
+                <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-sm text-xs font-bold ${active ? "bg-cinema-brand/20 text-cinema-brand-soft" : "bg-[#333] text-cinema-primary"}`}>{site.name.slice(0, 2)}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-medium text-cinema-primary">{site.name}</span>
+                  <span className="mt-0.5 block truncate font-mono text-[10px] text-cinema-subtle">
+                    {site.originName ? `${site.originName} · ` : ""}{site.api}
+                  </span>
+                </span>
+                <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] ${
+                  active
+                    ? "bg-cinema-brand/20 text-cinema-brand-soft"
+                    : engineOf(site, remote).ok
                     ? "bg-[#333] text-cinema-muted"
                     : "bg-cinema-warning/15 text-cinema-warning"
-              }`}>
-                {site.key === siteKey ? "当前源" : engineOf(site, remote).label}
-              </span>
-            </button>
-          ))}
+                }`}>
+                  {active ? "当前源" : engineOf(site, remote).label}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </Panel>
 
@@ -164,8 +180,8 @@ export function SettingsClient() {
         <Panel className="p-4">
           <h2 className="mb-3 border-b border-white/6 pb-2.5 text-base font-bold text-cinema-primary">解析接口</h2>
           <div className="space-y-1.5">
-            {config?.parses.map((parse) => (
-              <div key={parse.name} className="flex items-center justify-between rounded bg-[#2a2a2a] px-3 py-2.5 text-xs">
+            {config?.parses.map((parse, index) => (
+              <div key={`${parse.name}-${index}`} className="flex items-center justify-between rounded bg-[#2a2a2a] px-3 py-2.5 text-xs">
                 <span className="font-medium text-cinema-primary">{parse.name}</span>
                 <Chip size="sm">{PARSE_LABEL[parse.type] ?? `type ${parse.type}`}</Chip>
               </div>
@@ -184,5 +200,26 @@ export function SettingsClient() {
         </Panel>
       </div>
     </div>
+  );
+}
+
+/** 开关控件 */
+function Switch({ checked, onChange, label }: { checked: boolean; onChange: () => void; label: string }) {
+  return (
+    <button
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      onClick={onChange}
+      className={`relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${
+        checked ? "bg-cinema-brand" : "bg-[#404040]"
+      }`}
+    >
+      <span
+        className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-200 ${
+          checked ? "translate-x-[22px]" : "translate-x-0.5"
+        }`}
+      />
+    </button>
   );
 }

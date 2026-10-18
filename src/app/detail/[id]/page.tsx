@@ -5,9 +5,9 @@ export default async function DetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ site?: string }>;
+  searchParams: Promise<{ site?: string; from?: string }>;
 }) {
   const { id } = await params;
-  const { site } = await searchParams;
-  return <DetailClient id={id} site={site} />;
+  const { site, from } = await searchParams;
+  return <DetailClient id={id} site={site} from={from} />;
 }

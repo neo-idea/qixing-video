@@ -11,6 +11,9 @@ export interface SourceBean {
   jar?: string;
   playerType?: number;
   categories?: string[];
+  /** 多配置模式下注入: 该源所属配置地址与名称(运行时, 非持久) */
+  origin?: string;
+  originName?: string;
 }
 
 export interface ParseBean {
@@ -60,6 +63,9 @@ export interface VodItem {
   director?: string;
   content?: string;
   gradient: [string, string];
+  /** 运行时注入: 该条目所属站点 key 与配置地址, 用于跨页导航保持源上下文 */
+  sourceKey?: string;
+  sourceOrigin?: string;
 }
 
 export interface Episode {

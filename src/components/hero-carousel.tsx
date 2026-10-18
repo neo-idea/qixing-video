@@ -54,11 +54,11 @@ export function HeroCarousel({ list }: { list: VodItem[] }) {
             {(cur.actors ?? "").split(" / ").slice(0, 3).join(" / ")} {cur.content ? `· ${cur.content}` : ""}
           </p>
           <div className="flex flex-wrap items-center gap-2.5">
-            <LinkButton href={`/play/${cur.vod_id}/0-0`} size="lg" className="rounded">
+            <LinkButton href={`/play/${cur.vod_id}/0-0${cur.sourceKey ? `?site=${encodeURIComponent(cur.sourceKey)}${cur.sourceOrigin ? `&from=${encodeURIComponent(cur.sourceOrigin)}` : ""}` : ""}`} size="lg" className="rounded">
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor"><path d="M8 5.14v13.72a1 1 0 0 0 1.5.86l11-6.86a1 1 0 0 0 0-1.72l-11-6.86a1 1 0 0 0-1.5.86Z"/></svg>
               立即播放
             </LinkButton>
-            <LinkButton href={`/detail/${cur.vod_id}`} variant="secondary" size="lg" className="rounded bg-black/55 text-white backdrop-blur hover:bg-black/70">剧集详情</LinkButton>
+            <LinkButton href={`/detail/${cur.vod_id}${cur.sourceKey ? `?site=${encodeURIComponent(cur.sourceKey)}${cur.sourceOrigin ? `&from=${encodeURIComponent(cur.sourceOrigin)}` : ""}` : ""}`} variant="secondary" size="lg" className="rounded bg-black/55 text-white backdrop-blur hover:bg-black/70">剧集详情</LinkButton>
           </div>
         </div>
       </div>

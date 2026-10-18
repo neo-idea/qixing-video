@@ -22,7 +22,7 @@ export function SiteHeader() {
   const router = useRouter();
   const pathname = usePathname();
   const menuRef = useRef<HTMLDivElement>(null);
-  const { config, siteKey, setSiteKey } = useConfig();
+  const { config, siteKey, siteOrigin, setSiteKey } = useConfig();
 
   useEffect(() => {
     setActiveId(new URLSearchParams(window.location.search).get("c") ?? "");
@@ -36,7 +36,7 @@ export function SiteHeader() {
     return () => document.removeEventListener("click", close);
   }, []);
 
-  const currentSite = config?.sites.find((site) => site.key === siteKey);
+  const currentSite = config?.sites.find((site) => site.key === siteKey && (!siteOrigin || site.origin === siteOrigin));
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/6 bg-cinema-page/92 backdrop-blur-md">
@@ -95,26 +95,30 @@ export function SiteHeader() {
             {sourceOpen ? (
               <div className="absolute right-0 top-full z-50 mt-1.5 w-[min(88vw,340px)] overflow-hidden rounded-lg border border-white/8 bg-cinema-panel p-1.5 shadow-cinematic">
                 <div className="max-h-[60vh] overflow-y-auto">
-                  {config?.sites.map((site) => (
+                  {config?.sites.map((site) => {
+                    const ref = `${site.origin ?? ""}::${site.key}`;
+                    const active = ref === `${siteOrigin}::${siteKey}`;
+                    return (
                     <button
-                      key={site.key}
+                      key={ref}
                       onClick={() => {
-                        setSiteKey(site.key);
+                        setSiteKey(ref);
                         setSourceOpen(false);
                         router.push("/");
                       }}
                       className={`flex w-full items-center gap-2.5 rounded px-2.5 py-2 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${
-                        site.key === siteKey ? "bg-cinema-brand/15 text-cinema-brand-soft" : "text-cinema-muted hover:bg-white/6 hover:text-cinema-primary"
+                        active ? "bg-cinema-brand/15 text-cinema-brand-soft" : "text-cinema-muted hover:bg-white/6 hover:text-cinema-primary"
                       }`}
                     >
                       <span className="grid h-7 w-7 place-items-center rounded-sm bg-[#2f2f2f] text-[11px] font-bold">{site.name.slice(0, 2)}</span>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-xs font-medium">{site.name}</span>
-                        <span className="block truncate font-mono text-[9px] text-cinema-subtle">{site.api}</span>
+                        <span className="block truncate font-mono text-[9px] text-cinema-subtle">{site.originName ? `${site.originName} · ` : ""}{site.api}</span>
                       </span>
                       <span className="rounded-sm bg-[#2f2f2f] px-1 py-0.5 text-[9px]">T{site.type}</span>
                     </button>
-                  ))}
+                    );
+                  })}
                 </div>
                 <Link href="/settings" className="mt-1 block rounded border-t border-white/6 px-3 py-2.5 text-xs text-cinema-subtle transition hover:bg-white/5 hover:text-cinema-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft">
                   管理接口源与解析规则

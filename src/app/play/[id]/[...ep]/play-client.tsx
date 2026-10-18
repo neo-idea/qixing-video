@@ -15,12 +15,14 @@ export function PlayClient({
   episodeIndex,
   play,
   siteKey = "demo",
+  siteOrigin = "",
 }: {
   detail: VodDetail;
   sourceIndex: number;
   episodeIndex: number;
   play: Play;
   siteKey?: string;
+  siteOrigin?: string;
 }) {
   const [steps, setSteps] = useState<ParseStep[]>([]);
   const [finalUrl, setFinalUrl] = useState(play.url);
@@ -48,7 +50,7 @@ export function PlayClient({
   const parseLabel = play.parse === 0 ? "网页嗅探" : play.parse === 1 ? "Json 解析" : "并发扩展";
   const previous = episodes[episodeIndex - 1];
   const next = episodes[episodeIndex + 1];
-  const href = (index: number) => `/play/${detail.vod_id}/${sourceIndex}-${index}?site=${siteKey}`;
+  const href = (index: number) => `/play/${detail.vod_id}/${sourceIndex}-${index}?site=${encodeURIComponent(siteKey)}${siteOrigin ? `&from=${encodeURIComponent(siteOrigin)}` : ""}`;
 
   return (
     <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
@@ -58,7 +60,7 @@ export function PlayClient({
         <Panel className="mt-3 p-3.5 sm:p-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
-              <Link href={`/detail/${detail.vod_id}?site=${siteKey}`} className="inline-flex min-h-11 max-w-full items-center truncate text-lg font-bold tracking-tight text-cinema-primary transition hover:text-cinema-brand-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cinema-brand-soft sm:text-xl">
+              <Link href={`/detail/${detail.vod_id}?site=${encodeURIComponent(siteKey)}${siteOrigin ? `&from=${encodeURIComponent(siteOrigin)}` : ""}`} className="inline-flex min-h-11 max-w-full items-center truncate text-lg font-bold tracking-tight text-cinema-primary transition hover:text-cinema-brand-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cinema-brand-soft sm:text-xl">
                 {detail.vod_name}
               </Link>
               <p className="mt-1 line-clamp-1 text-[11px] text-cinema-subtle sm:text-xs">
@@ -81,7 +83,7 @@ export function PlayClient({
           <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-white/6 pt-3 text-xs">
             <Chip size="sm">{from} · {current.name}</Chip>
             <Chip tone="brand" size="sm">解析: {parseLabel}</Chip>
-            <Link href={`/detail/${detail.vod_id}?site=${siteKey}`} className="ml-auto flex h-8 items-center rounded px-2 text-xs text-cinema-muted transition hover:text-cinema-brand-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft">详情与换源 ›</Link>
+            <Link href={`/detail/${detail.vod_id}?site=${encodeURIComponent(siteKey)}${siteOrigin ? `&from=${encodeURIComponent(siteOrigin)}` : ""}`} className="ml-auto flex h-8 items-center rounded px-2 text-xs text-cinema-muted transition hover:text-cinema-brand-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft">详情与换源 ›</Link>
           </div>
         </Panel>
 
@@ -142,7 +144,7 @@ export function PlayClient({
             {detail.vod_play_from.map((line, index) => (
               <Link
                 key={line}
-                href={`/play/${detail.vod_id}/${index}-0?site=${siteKey}`}
+                href={`/play/${detail.vod_id}/${index}-0?site=${encodeURIComponent(siteKey)}${siteOrigin ? `&from=${encodeURIComponent(siteOrigin)}` : ""}`}
                 className={`flex items-center justify-between rounded px-3 py-2 text-xs transition active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${
                   index === sourceIndex ? "border border-cinema-brand/50 bg-cinema-brand/12 font-bold text-cinema-brand-soft" : "bg-[#2a2a2a] text-cinema-muted hover:bg-[#333] hover:text-cinema-primary"
                 }`}
