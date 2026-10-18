@@ -64,7 +64,7 @@ export function HeroCarousel({ list }: { list: VodItem[] }) {
       </div>
       <div className="absolute bottom-3 right-4 hidden items-center gap-1.5 sm:flex">
         {list.map((v, idx) => (
-          <button key={v.vod_id} onClick={() => setI(idx)} aria-label={`切换到 ${v.vod_name}`} className={`h-1.5 rounded-full transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cinema-brand-soft ${idx === i ? "w-6 bg-cinema-brand" : "w-3 bg-white/35 hover:bg-white/60"}`} />
+          <button key={v.vod_id} onClick={() => setI(idx)} aria-label={`切换到 ${v.vod_name}`} className={`h-1.5 rounded-full transition-all active:scale-125 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cinema-brand-soft ${idx === i ? "w-6 bg-cinema-brand" : "w-3 bg-white/35 hover:bg-white/60"}`} />
         ))}
       </div>
     </div>

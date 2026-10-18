@@ -105,7 +105,7 @@ export function DetailClient({ id, site }: { id: string; site?: string }) {
               </div>
             </dl>
             <p className={`mb-4 max-w-3xl text-xs leading-6 text-cinema-muted sm:text-sm ${expanded ? "" : "line-clamp-3"}`}>{detail.content}</p>
-            <button onClick={() => setExpanded((value) => !value)} className="mb-4 h-9 rounded px-3 text-xs font-medium text-cinema-brand-soft transition hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft">
+            <button onClick={() => setExpanded((value) => !value)} className="mb-4 h-9 rounded px-3 text-xs font-medium text-cinema-brand-soft transition duration-150 active:scale-[0.96] hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft">
               {expanded ? "收起简介" : "展开完整简介"}
             </button>
             <div className="flex flex-wrap items-center gap-2.5">
@@ -132,7 +132,7 @@ export function DetailClient({ id, site }: { id: string; site?: string }) {
                   <Link
                     key={`${episode.name}-${episodeIndex}`}
                     href={`/play/${detail.vod_id}/${sourceIndex}-${episodeIndex}?site=${key}`}
-                    className="group relative min-h-10 overflow-hidden rounded border border-white/8 bg-[#2a2a2a] px-2 text-center text-xs leading-10 text-cinema-muted transition hover:border-cinema-brand/60 hover:bg-cinema-brand/10 hover:text-cinema-brand-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft"
+                    className="group relative min-h-10 overflow-hidden rounded border border-white/8 bg-[#2a2a2a] px-2 text-center text-xs leading-10 text-cinema-muted transition duration-150 active:scale-[0.95] hover:border-cinema-brand/60 hover:bg-cinema-brand/10 hover:text-cinema-brand-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft"
                   >
                     <span className="block truncate">{episode.name}</span>
                     {episode.parse === 1 ? <span className="absolute right-1 top-0.5 text-[9px] font-bold text-cinema-hot">JX</span> : null}
@@ -150,7 +150,7 @@ export function DetailClient({ id, site }: { id: string; site?: string }) {
           {sources.length ? (
             <div className="space-y-1">
               {sources.map((source) => (
-                <Link key={source.site} href={`/detail/${source.item.vod_id}?site=${source.site}`} className="flex items-center gap-2.5 rounded p-1.5 transition hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft">
+                <Link key={source.site} href={`/detail/${source.item.vod_id}?site=${source.site}`} className="flex items-center gap-2.5 rounded p-1.5 transition duration-150 active:scale-[0.98] hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft">
                   <span className="h-[57px] w-10 overflow-hidden rounded-sm"><Poster item={source.item} compact /></span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-medium text-cinema-primary">{source.name}</span>

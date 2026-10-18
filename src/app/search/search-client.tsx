@@ -98,7 +98,7 @@ export function SearchClient({ q }: { q: string }) {
                   setKeyword(word);
                   submit(word);
                 }}
-                className="h-9 shrink-0 rounded bg-[#2a2a2a] px-3.5 text-[11px] text-cinema-muted transition hover:bg-[#333] hover:text-cinema-brand-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft"
+                className="h-9 shrink-0 rounded bg-[#2a2a2a] px-3.5 text-[11px] text-cinema-muted transition duration-150 active:scale-[0.95] hover:bg-[#333] hover:text-cinema-brand-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft"
               >
                 {word}
               </button>

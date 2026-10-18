@@ -39,7 +39,7 @@ export function SiteHeader() {
   const currentSite = config?.sites.find((site) => site.key === siteKey);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/6 bg-cinema-page">
+    <header className="sticky top-0 z-50 border-b border-white/6 bg-cinema-page/92 backdrop-blur-md">
       <div className="mx-auto flex h-14 max-w-[1480px] items-center gap-4 px-3 md:h-[60px] md:gap-6 md:px-6 lg:px-8">
         <Link href="/" className="flex min-h-11 shrink-0 items-center gap-2" aria-label="七星视频首页">
           <span className="grid h-8 w-8 shrink-0 place-items-center rounded bg-cinema-brand text-sm font-black text-[#063434]">七</span>
@@ -77,14 +77,14 @@ export function SiteHeader() {
         </form>
 
         <div className="ml-auto flex items-center gap-1.5 md:ml-0">
-          <Link href="/search" aria-label="搜索" className="grid h-9 w-9 place-items-center rounded text-cinema-muted transition hover:bg-[#2a2a2a] hover:text-cinema-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft md:hidden">
+          <Link href="/search" aria-label="搜索" className="grid h-9 w-9 place-items-center rounded text-cinema-muted transition duration-150 active:scale-[0.94] hover:bg-[#2a2a2a] hover:text-cinema-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft md:hidden">
             <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" strokeLinecap="round" /></svg>
           </Link>
 
           <div ref={menuRef} className="relative">
             <button
               onClick={() => setSourceOpen((value) => !value)}
-              className="flex h-9 max-w-[180px] items-center gap-2 rounded bg-[#2a2a2a] px-2.5 text-xs text-cinema-muted transition hover:text-cinema-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft"
+              className="flex h-9 max-w-[180px] items-center gap-2 rounded bg-[#2a2a2a] px-2.5 text-xs text-cinema-muted transition duration-150 active:scale-[0.97] hover:text-cinema-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft"
               aria-label="切换站点源"
               aria-expanded={sourceOpen}
             >

@@ -14,7 +14,7 @@ export function RankPanel({ list, title = "热门榜单" }: { list: VodItem[]; t
       <ol className="flex-1 divide-y divide-white/5">
         {list.map((v, idx) => (
           <li key={v.vod_id}>
-            <Link href={`/detail/${v.vod_id}`} className="group flex items-center gap-2.5 rounded px-1 py-2 transition hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft">
+            <Link href={`/detail/${v.vod_id}`} className="group flex items-center gap-2.5 rounded px-1 py-2 transition duration-150 active:scale-[0.98] hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft">
               <span className={`w-5 shrink-0 text-center text-base font-black italic ${idx < 3 ? "text-cinema-hot" : "text-cinema-subtle"}`}>
                 {idx + 1}
               </span>

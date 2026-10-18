@@ -80,6 +80,10 @@ body {
   }
 }
 
+summary::-webkit-details-marker {
+  display: none;
+}
+
 .no-scrollbar {
   scrollbar-width: none;
 }

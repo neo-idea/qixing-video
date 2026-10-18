@@ -101,9 +101,30 @@ export function HomeClient() {
 
   if (cfgLoading) {
     return (
-      <div className="grid place-items-center py-40">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-white/10 border-t-cinema-brand" />
-        <p className="mt-4 text-xs text-cinema-subtle">正在加载接口源配置…</p>
+      <div>
+        <div className="flex flex-col gap-4 lg:flex-row">
+          <div className="min-w-0 flex-1">
+            <div className="aspect-[16/10] w-full animate-pulse rounded-lg bg-cinema-panel sm:aspect-[16/7]" />
+          </div>
+          <div className="w-full space-y-3 rounded-lg bg-cinema-panel p-4 lg:w-[300px] xl:w-[320px]">
+            <div className="h-5 w-24 animate-pulse rounded bg-white/5" />
+            {Array.from({ length: 6 }).map((_, index) => (
+              <div key={index} className="flex items-center gap-2.5">
+                <div className="h-[57px] w-10 shrink-0 animate-pulse rounded-sm bg-white/5" />
+                <div className="h-3 flex-1 animate-pulse rounded bg-white/5" />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="mt-8 flex gap-3 overflow-hidden sm:gap-4">
+          {Array.from({ length: 8 }).map((_, index) => (
+            <div key={index} className="w-[38vw] shrink-0 sm:w-[28vw] md:w-[22vw] lg:w-[158px] xl:w-[178px]">
+              <div className="aspect-[2/3] animate-pulse rounded-md bg-white/5" />
+              <div className="mt-2 h-3.5 w-4/5 animate-pulse rounded bg-white/5" />
+              <div className="mt-1.5 h-2.5 w-2/5 animate-pulse rounded bg-white/5" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -127,7 +148,7 @@ export function HomeClient() {
             <button
               key={channel.id}
               onClick={() => setTid(channel.id)}
-              className="group flex min-w-[96px] shrink-0 flex-col justify-center rounded-md border border-white/6 bg-cinema-panel px-3.5 py-2.5 text-left transition hover:border-cinema-brand/50 hover:bg-cinema-elevated focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft sm:min-w-0"
+              className="group flex min-w-[96px] shrink-0 flex-col justify-center rounded-md border border-white/6 bg-cinema-panel px-3.5 py-2.5 text-left transition duration-150 active:scale-[0.97] hover:border-cinema-brand/50 hover:bg-cinema-elevated focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft sm:min-w-0"
             >
               <span className="text-sm font-bold text-cinema-primary group-hover:text-cinema-brand-soft">{channel.name}</span>
               <span className="mt-0.5 text-[11px] text-cinema-subtle">{channel.desc}</span>
@@ -142,7 +163,7 @@ export function HomeClient() {
             setTid("");
             setPg(1);
           }}
-          className={`relative h-9 shrink-0 text-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${
+          className={`relative h-9 shrink-0 text-sm transition duration-150 active:scale-[0.95] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${
             !tid ? "font-bold text-cinema-brand-soft" : "text-cinema-muted hover:text-cinema-primary"
           }`}
         >
@@ -178,7 +199,7 @@ export function HomeClient() {
                   <button
                     key={value}
                     onClick={() => pick(filter.key, value)}
-                    className={`h-8 shrink-0 rounded px-2.5 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${
+                    className={`h-8 shrink-0 rounded px-2.5 transition duration-150 active:scale-[0.95] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${
                       active ? "bg-cinema-brand/18 font-semibold text-cinema-brand-soft" : "text-cinema-muted hover:text-cinema-primary"
                     }`}
                   >

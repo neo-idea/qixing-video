@@ -5,7 +5,7 @@ type Variant = "primary" | "secondary" | "ghost" | "quiet";
 type Size = "sm" | "md" | "lg";
 
 const buttonBase =
-  "inline-flex select-none items-center justify-center gap-2 rounded font-semibold transition disabled:pointer-events-none disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft";
+  "inline-flex select-none items-center justify-center gap-2 rounded font-semibold transition duration-150 active:scale-[0.97] disabled:pointer-events-none disabled:active:scale-100 disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft";
 
 const buttonVariants: Record<Variant, string> = {
   primary: "brand-button hover:brightness-110",
@@ -29,7 +29,7 @@ export function LinkButton({ variant = "primary", size = "md", className = "", .
 }
 
 export function IconButton({ className = "", ...props }: ButtonHTMLAttributes<HTMLButtonElement>) {
-  return <button className={`grid h-9 w-9 place-items-center rounded bg-[#2a2a2a] text-cinema-muted transition hover:bg-[#333] hover:text-cinema-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${className}`} {...props} />;
+  return <button className={`grid h-9 w-9 place-items-center rounded bg-[#2a2a2a] text-cinema-muted transition duration-150 active:scale-[0.94] hover:bg-[#333] hover:text-cinema-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${className}`} {...props} />;
 }
 
 type ChipTone = "neutral" | "brand" | "success" | "warning";
@@ -63,8 +63,11 @@ export function Panel({ className = "", ...props }: ComponentProps<"div">) {
 export function EmptyState({ title, description, children }: { title: string; description: string; children?: ReactNode }) {
   return (
     <Panel className="grid place-items-center px-4 py-16 text-center sm:py-20">
+      <span className="mb-3 grid h-11 w-11 place-items-center rounded-full bg-[#2a2a2a] text-cinema-subtle">
+        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" strokeLinecap="round" /></svg>
+      </span>
       <h2 className="text-base font-bold text-cinema-primary">{title}</h2>
-      <p className="mt-2 max-w-md text-xs leading-relaxed text-cinema-subtle">{description}</p>
+      <p className="mt-1.5 max-w-md text-xs leading-relaxed text-cinema-subtle">{description}</p>
       {children ? <div className="mt-5 flex flex-wrap justify-center gap-3">{children}</div> : null}
     </Panel>
   );

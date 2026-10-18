@@ -6,7 +6,7 @@ import { Poster } from "./poster";
 export function VideoCard({ item, site, rank }: { item: VodItem; site?: string; rank?: number }) {
   return (
     <Link href={`/detail/${item.vod_id}${site ? `?site=${site}` : ""}`} className="group block outline-none focus-visible:ring-2 focus-visible:ring-cinema-brand-soft" aria-label={`${item.vod_name} 详情`}>
-      <div className="relative overflow-hidden rounded-md bg-[#262626] transition duration-200 group-hover:-translate-y-1 group-hover:shadow-cinematic">
+      <div className="relative overflow-hidden rounded-md bg-[#262626] transition duration-200 group-hover:-translate-y-1 group-active:scale-[0.98] group-active:translate-y-0 group-hover:shadow-cinematic">
         {typeof rank === "number" ? (
           <span className={`absolute left-0 top-0 z-10 rounded-br-md px-2 py-0.5 text-xs font-black italic ${rank <= 3 ? "bg-cinema-hot text-white" : "bg-black/70 text-cinema-muted"}`}>
             {rank}

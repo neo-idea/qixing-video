@@ -73,7 +73,7 @@ export function SettingsClient() {
                 key={line.url}
                 onClick={() => pickLine(line.url)}
                 disabled={loading || lineUrl === line.url}
-                className={`flex min-h-[56px] flex-col justify-center gap-1 rounded p-3 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${
+                className={`flex min-h-[56px] flex-col justify-center gap-1 rounded p-3 text-left transition duration-150 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${
                   lineUrl === line.url
                     ? "border border-cinema-brand/50 bg-cinema-brand/12"
                     : "border border-white/8 bg-[#2a2a2a] hover:bg-[#333]"
@@ -103,7 +103,7 @@ export function SettingsClient() {
             <button
               key={site.key}
               onClick={() => setSiteKey(site.key)}
-              className={`flex min-h-[64px] w-full items-center gap-3 rounded p-3 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${
+              className={`flex min-h-[64px] w-full items-center gap-3 rounded p-3 text-left transition duration-150 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${
                 site.key === siteKey ? "border border-cinema-brand/50 bg-cinema-brand/12" : "border border-white/8 bg-[#2a2a2a] hover:bg-[#333]"
               }`}
             >
