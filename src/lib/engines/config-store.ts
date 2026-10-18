@@ -27,9 +27,72 @@ export function normalizeApiUrl(raw: string): string {
 }
 
 /**
- * 宽松 JSON 解析: 真实世界配置常含裸控制字符/未转义字符,
- * TVBox 客户端解析器宽容处理, Node JSON.parse 严格拒绝。此处
- * 仅清除字符串字面量内的控制字符后重试。
+ * 字符串感知的注释剥离: 仅剔除字符串字面量之外的 // 与 # 注释,
+ * 避免 URL 中的 # 或 // 被误伤。
+ */
+function stripJsonComments(text: string): string {
+  let out = "";
+  let inStr = false;
+  let esc = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (esc) {
+      out += ch;
+      esc = false;
+      continue;
+    }
+    if (ch === "\\" && inStr) {
+      out += ch;
+      esc = true;
+      continue;
+    }
+    if (ch === '"') {
+      inStr = !inStr;
+      out += ch;
+      continue;
+    }
+    if (!inStr && (ch === "#" || (ch === "/" && text[i + 1] === "/"))) {
+      while (i < text.length && text[i] !== "\n") i++;
+      out += "\n";
+      continue;
+    }
+    out += ch;
+  }
+  return out;
+}
+
+/** 字符串感知的尾随逗号移除: ,\s*}\] 场景 */
+function stripTrailingCommas(text: string): string {
+  let out = "";
+  let inStr = false;
+  let esc = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (esc) {
+      out += ch;
+      esc = false;
+      continue;
+    }
+    if (ch === "\\" && inStr) {
+      out += ch;
+      esc = true;
+      continue;
+    }
+    if (ch === '"') inStr = !inStr;
+    if (ch === "," && !inStr) {
+      let j = i + 1;
+      while (j < text.length && /\s/.test(text[j])) j++;
+      if (text[j] === "}" || text[j] === "]") continue; // 丢弃尾随逗号
+    }
+    out += ch;
+  }
+  return out;
+}
+
+/**
+ * 宽松 JSON 解析: 真实世界配置常含 BOM、裸控制字符、// 与 # 注释
+ * (JSONC 风格, TVBox 客户端解析器宽容处理)与尾随逗号,
+ * Node JSON.parse 严格拒绝。此处逐级清理后重试。
  */
 function parseLoose(text: string): unknown {
   const body = text.replace(/^\ufeff/, "");
@@ -38,10 +101,11 @@ function parseLoose(text: string): unknown {
   } catch {
     /* 继续宽松清理 */
   }
+  const noComments = stripJsonComments(body);
   let out = "";
   let inStr = false;
   let esc = false;
-  for (const ch of body) {
+  for (const ch of noComments) {
     const code = ch.charCodeAt(0);
     if (esc) {
       out += ch;
@@ -57,7 +121,11 @@ function parseLoose(text: string): unknown {
     if (inStr && code < 0x20) continue; // 丢弃字符串内的裸控制字符
     out += ch;
   }
-  return JSON.parse(out);
+  try {
+    return JSON.parse(out);
+  } catch {
+    return JSON.parse(stripTrailingCommas(out));
+  }
 }
 /** 下载并解密一份 TVBox 配置; 解析结果不含 sites 时抛错 */
 export async function fetchSiteConfig(raw: string): Promise<SiteConfig> {
