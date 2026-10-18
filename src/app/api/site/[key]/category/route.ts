@@ -7,11 +7,15 @@ export async function GET(
 ) {
   const { key } = await params;
   const sp = req.nextUrl.searchParams;
-  const data = await getCSP(key).categoryContent(
-    sp.get("tid") ?? "",
-    Number(sp.get("pg") ?? 1),
-    true,
-    Object.fromEntries(sp.entries())
-  );
-  return NextResponse.json(data);
+  try {
+    const data = await (await getCSP(key, req.cookies.get("qx_api_url")?.value)).categoryContent(
+      sp.get("tid") ?? "",
+      Number(sp.get("pg") ?? 1),
+      true,
+      Object.fromEntries(sp.entries())
+    );
+    return NextResponse.json(data);
+  } catch (e) {
+    return NextResponse.json({ list: [], error: (e as Error).message });
+  }
 }

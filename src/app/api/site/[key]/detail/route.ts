@@ -8,7 +8,9 @@ export async function GET(
   const { key } = await params;
   const id = req.nextUrl.searchParams.get("id") ?? "";
   try {
-    return NextResponse.json(await getCSP(key).detailContent([id]));
+    return NextResponse.json(
+      await (await getCSP(key, req.cookies.get("qx_api_url")?.value)).detailContent([id])
+    );
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 404 });
   }

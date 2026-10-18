@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { getCSP } from "@/lib/engines/registry";
 import { PlayClient } from "./play-client";
 
@@ -14,7 +15,7 @@ export default async function PlayPage({
   const joined = (resolvedParams.ep ?? []).join("-");
   const [, src, ep] = joined.match(/(\d+)-(\d+)/) ?? ["", "0", "0"];
   const siteKey = site ?? "demo";
-  const spider = getCSP(siteKey);
+  const spider = await getCSP(siteKey, (await cookies()).get("qx_api_url")?.value);
   const detail = await spider.detailContent([resolvedParams.id]);
   const play = await spider.playerContent("七星蓝光", `${resolvedParams.id}|${src}|${ep}`, []);
   return (

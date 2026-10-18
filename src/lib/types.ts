@@ -1,7 +1,7 @@
 export interface SourceBean {
   key: string;
   name: string;
-  type: 0 | 3 | 4;
+  type: 0 | 1 | 3 | 4;
   api: string;
   searchable?: number;
   quickSearch?: number;
@@ -28,6 +28,11 @@ export interface SniffRule {
   filter?: string[];
 }
 
+export interface SubscriptionLine {
+  url: string;
+  name: string;
+}
+
 export interface SiteConfig {
   spider: string;
   wallpaper: string;
@@ -36,6 +41,10 @@ export interface SiteConfig {
   parses: ParseBean[];
   flags: string[];
   rules: SniffRule[];
+  /** 多线路订阅: 检测到 urls 结构时返回线路列表 */
+  subscription?: { lines: SubscriptionLine[] };
+  /** 是否来自外部接口(非内置演示源) */
+  remote?: boolean;
 }
 
 export interface VodItem {

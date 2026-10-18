@@ -7,6 +7,11 @@ export async function GET(
 ) {
   const { key: siteKey } = await params;
   const key = req.nextUrl.searchParams.get("key") ?? "";
-  const data = await getCSP(siteKey).searchContent(key, false);
-  return NextResponse.json(data);
+  try {
+    return NextResponse.json(
+      await (await getCSP(siteKey, req.cookies.get("qx_api_url")?.value)).searchContent(key, false)
+    );
+  } catch (e) {
+    return NextResponse.json({ list: [], error: (e as Error).message });
+  }
 }
