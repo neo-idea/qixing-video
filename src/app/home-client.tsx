@@ -10,7 +10,6 @@ import { Button, Chip } from "@/components/ui";
 import { useConfig } from "@/lib/store";
 import type { CategoryFilter, VodItem } from "@/lib/types";
 
-const CATEGORY_ID: Record<string, string> = { tv: "tv", movie: "movie", show: "show", anime: "anime", doc: "doc" };
 const CHANNELS = [
   { id: "tv", name: "剧场", desc: "热播大剧" },
   { id: "movie", name: "电影", desc: "院线大片" },
@@ -18,6 +17,24 @@ const CHANNELS = [
   { id: "show", name: "综艺", desc: "真人秀场" },
   { id: "doc", name: "纪实", desc: "开阔视野" },
 ] as const;
+
+/** 频道语义 → 分类名关键词(不同 CMS 源分类命名不一, 按名称模糊匹配) */
+const CHANNEL_MATCH: Record<string, string[]> = {
+  tv: ["剧", "电视", "连续", "国产"],
+  movie: ["电影", "片"],
+  anime: ["动漫", "动画", "番"],
+  show: ["综艺", "秀"],
+  doc: ["纪", "记录", "纪录"],
+};
+
+/** 把频道入口解析为当前源的真实分类 id; 演示源(type_id 即频道名)原样返回;
+ *  CMS 源未命中返回 null(部分源不提供全量分类表, 不应传无效 tid 查空) */
+function resolveChannel(channelId: string, classes: { type_id: string; type_name: string }[]): string | null {
+  if (!classes.length || classes.some((c) => c.type_id === channelId)) return channelId;
+  const keywords = CHANNEL_MATCH[channelId] ?? [];
+  const hit = classes.find((c) => keywords.some((k) => (c.type_name ?? "").includes(k)));
+  return hit ? hit.type_id : null;
+}
 
 export function HomeClient() {
   const params = useSearchParams();
@@ -38,11 +55,10 @@ export function HomeClient() {
       setTid("");
       return;
     }
-    if (CATEGORY_ID[c]) {
-      setPg(1);
-      setTid(CATEGORY_ID[c]);
-    }
-  }, [c]);
+    // 等当前源真实分类就绪后再解析频道(演示源除外); 未命中回落精选
+    setPg(1);
+    setTid(resolveChannel(c, classes) ?? "");
+  }, [c, classes]);
 
   /** 聚合首页: 启用配置中的 CMS 源并行拉取去重, 未选分类时展示 */
   useEffect(() => {
@@ -178,16 +194,27 @@ export function HomeClient() {
 
       {!tid ? (
         <div className="no-scrollbar mt-4 flex gap-2.5 overflow-x-auto sm:grid sm:grid-cols-5 sm:gap-3">
-          {CHANNELS.map((channel) => (
+          {CHANNELS.map((channel) => {
+            const resolved = resolveChannel(channel.id, classes);
+            return (
             <button
               key={channel.id}
-              onClick={() => setTid(channel.id)}
-              className="group flex min-w-[96px] shrink-0 flex-col justify-center rounded-md border border-white/6 bg-cinema-panel px-3.5 py-2.5 text-left transition duration-150 active:scale-[0.97] hover:border-cinema-brand/50 hover:bg-cinema-elevated focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft sm:min-w-0"
+              disabled={classes.length > 0 && !resolved}
+              onClick={() => {
+                setPg(1);
+                setTid(resolved ?? "");
+              }}
+              className={`group flex min-w-[96px] shrink-0 flex-col justify-center rounded-md border border-white/6 px-3.5 py-2.5 text-left transition duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft sm:min-w-0 ${
+                classes.length > 0 && !resolved
+                  ? "cursor-not-allowed bg-cinema-panel/40 opacity-40"
+                  : "bg-cinema-panel active:scale-[0.97] hover:border-cinema-brand/50 hover:bg-cinema-elevated"
+              }`}
             >
               <span className="text-sm font-bold text-cinema-primary group-hover:text-cinema-brand-soft">{channel.name}</span>
-              <span className="mt-0.5 text-[11px] text-cinema-subtle">{channel.desc}</span>
+              <span className="mt-0.5 text-[11px] text-cinema-subtle">{classes.length > 0 && !resolved ? "该源无此分类" : channel.desc}</span>
             </button>
-          ))}
+            );
+          })}
         </div>
       ) : null}
 
