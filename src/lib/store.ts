@@ -153,10 +153,8 @@ export function useConfig() {
 
   const setSiteKey = useCallback((ref: string) => setSiteRefState(ref), []);
 
-  /**
-   * 导入配置/订阅: 订阅(urls 结构)展开为多条线路条目(默认关闭),
-   * 直连配置为单条(默认开启)。返回导入结果描述。
-   */
+  /** 导入配置/订阅: 订阅(urls 结构)展开为多条线路条目(默认关闭),
+   * 直连配置为单条(默认开启)。导入后立即刷新合并配置。 */
   const addSource = useCallback(
     async (url: string): Promise<string> => {
       const res = await fetch(`/api/config/load?url=${encodeURIComponent(url)}`);
@@ -175,40 +173,40 @@ export function useConfig() {
             addedAt: Date.now(),
           }));
         if (!fresh.length) return "该订阅的线路均已存在，可在下方列表中开启";
-        setSources((prev) => [...prev, ...fresh]);
+        const next = [...sources, ...fresh];
+        setSources(next);
+        reload(next);
         return `识别为多线路订阅，已导入 ${fresh.length} 条线路（默认关闭，请按需开启）`;
       }
       if (!json.sites?.length) throw new Error("配置解析成功但未发现站点源");
       if (sources.some((e) => e.url === url)) return "该配置已在列表中";
-      setSources((prev) => [
-        ...prev,
+      const next: SourceEntry[] = [
+        ...sources,
         { id: uid(), name: hostOf(url), url, enabled: true, addedAt: Date.now() },
-      ]);
+      ];
+      setSources(next);
+      reload(next);
       return `已导入配置（${json.sites.length} 个站点源）`;
     },
-    [sources]
+    [sources, reload]
   );
 
   const toggleSource = useCallback(
     (id: string) => {
-      setSources((prev) => {
-        const next = prev.map((e) => (e.id === id ? { ...e, enabled: !e.enabled } : e));
-        reload(next);
-        return next;
-      });
+      const next = sources.map((e) => (e.id === id ? { ...e, enabled: !e.enabled } : e));
+      setSources(next);
+      reload(next);
     },
-    [reload]
+    [sources, reload]
   );
 
   const removeSource = useCallback(
     (id: string) => {
-      setSources((prev) => {
-        const next = prev.filter((e) => e.id !== id);
-        reload(next);
-        return next;
-      });
+      const next = sources.filter((e) => e.id !== id);
+      setSources(next);
+      reload(next);
     },
-    [reload]
+    [sources, reload]
   );
 
   const clearAll = useCallback(() => {
