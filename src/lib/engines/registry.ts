@@ -1,6 +1,7 @@
 import { resolveConfig } from "@/lib/engines/config-store";
 import { DemoSpider } from "@/lib/engines/demo-spider";
 import { CmsSpider } from "@/lib/engines/cms-spider";
+import { AppYsSpider } from "@/lib/engines/appys-spider";
 import type { SiteConfig, SourceBean, Spider } from "@/lib/types";
 
 const cache = new Map<string, Spider>();
@@ -34,7 +35,11 @@ function findBean(config: SiteConfig, key: string): SourceBean {
 }
 
 function spawnRemote(bean: SourceBean): Spider {
-  if (bean.type === 0 || bean.type === 4) return new CmsSpider(bean.key, bean.name, bean.api);
+  // AppYs/AppGet 引擎: type 3 的两个可运行特例(接口地址在 ext)
+  if (["csp_AppYs", "csp_AppYsV2", "csp_AppGet", "csp_AppGet2"].includes(bean.api)) {
+    return new AppYsSpider(bean);
+  }
+  if (bean.type === 0 || bean.type === 4) return new CmsSpider(bean.key, bean.name, bean.api, bean.type);
   const kind = bean.api.startsWith("py_")
     ? "Python"
     : bean.api.endsWith(".js") || bean.api.includes(".js?")

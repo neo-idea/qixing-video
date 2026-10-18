@@ -1,10 +1,12 @@
 import type { Episode, Spider, VodDetail, VodItem } from "@/lib/types";
+import { isDirectStream } from "./stream-url";
 
 /**
- * MacCMS(JSON) 采集站引擎, 对应 APK 中 type 0/4 的 SortSpider 链路:
- *   首页/分类: ?ac=videolist(&t=&pg=)   详情: ?ac=videolist&ids=
- *   搜索: ?ac=videolist&wd=
- * 全部走真实 HTTP 请求, 不再使用演示数据。
+ * MacCMS 采集站引擎, 对齐 StreamLib iOS CMSEngine:
+ *   type 0 (XML): ?ac=videolist(列表/搜索/详情)  + XML 响应解析
+ *   type 1 (JSON): ?ac=detail(标准 MacCMS JSON 接口, 部分源不认 videolist)
+ *   type 4 (T4): ?ac=detail(列表) + ?ac=player(取流)
+ * 请求头携带 Referer/Origin(防盗链源需要)。
  */
 
 interface CmsVod {
@@ -73,7 +75,20 @@ function parseXmlResp(text: string): CmsResp {
   return resp;
 }
 
-const UA = { "User-Agent": "okhttp/3.15" };
+const UA = { "User-Agent": "okhttp/3.15", Accept: "application/json, */*" };
+
+/** 防盗链: 从接口地址派生 Referer/Origin(移植 StreamLib buildHeaders) */
+function headersOf(api: string) {
+  const h: Record<string, string> = { ...UA };
+  try {
+    const origin = new URL(api).origin;
+    h.Referer = `${origin}/`;
+    h.Origin = origin;
+  } catch {
+    /* 仅 UA */
+  }
+  return h;
+}
 
 function stripHtml(html: string): string {
   return html
@@ -131,17 +146,25 @@ export class CmsSpider implements Spider {
   readonly name: string;
   private readonly api: string;
 
-  constructor(key: string, name: string, api: string) {
+  private readonly cmsType: number;
+
+  constructor(key: string, name: string, api: string, cmsType = 0) {
     this.key = key;
     this.name = name;
     this.api = api;
+    this.cmsType = cmsType;
   }
 
   init() {}
 
+  /** 列表动作参数: type 1 用 ac=detail(标准 JSON 接口), 其余用 ac=videolist */
+  private get listAc() {
+    return this.cmsType === 1 ? "detail" : "videolist";
+  }
+
   private async request(query: string): Promise<CmsResp> {
     const url = `${this.api}${this.api.includes("?") ? "&" : "?"}${query}`;
-    const res = await fetch(url, { headers: UA, cache: "no-store", signal: AbortSignal.timeout(12000) });
+    const res = await fetch(url, { headers: headersOf(this.api), cache: "no-store", signal: AbortSignal.timeout(12000) });
     if (!res.ok) throw new Error(`源请求失败 HTTP ${res.status}`);
     const text = await res.text();
     if (text.trimStart().startsWith("<")) return parseXmlResp(text); // 部分 type 0 源实为 XML 接口
@@ -149,7 +172,7 @@ export class CmsSpider implements Spider {
   }
 
   async homeContent() {
-    const [meta, latest] = await Promise.all([this.request("ac=list"), this.request("ac=videolist")]);
+    const [meta, latest] = await Promise.all([this.request("ac=list"), this.request(`${this.listAc}&pg=1`)]);
     const classes = (meta.class ?? []).map((c) => ({ type_id: String(c.type_id), type_name: c.type_name }));
     if (!classes.length) {
       // 部分 XML 接口不提供分类表, 从列表 tid/type 去重反推
@@ -173,12 +196,12 @@ export class CmsSpider implements Spider {
       .filter(([, v]) => v && v !== "全部")
       .map(([k, v]) => `&${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
       .join("");
-    const data = await this.request(`ac=videolist&t=${encodeURIComponent(tid)}&pg=${pg}${extra}`);
+    const data = await this.request(`${this.listAc}&t=${encodeURIComponent(tid)}&pg=${pg}${extra}`);
     return { list: (data.list ?? []).map(toVodItem) };
   }
 
   async detailContent(ids: string[]) {
-    const data = await this.request(`ac=videolist&ids=${encodeURIComponent(ids[0])}`);
+    const data = await this.request(`${this.listAc}&ids=${encodeURIComponent(ids[0])}`);
     const v = data.list?.[0];
     if (!v) throw new Error(`未找到影片: ${ids[0]}`);
     const { from, episodes } = parsePlaySources(v);
@@ -194,21 +217,39 @@ export class CmsSpider implements Spider {
   }
 
   async searchContent(key: string) {
-    const data = await this.request(`ac=videolist&wd=${encodeURIComponent(key)}`);
+    const data = await this.request(`${this.listAc}&wd=${encodeURIComponent(key)}`);
     return { list: (data.list ?? []).map(toVodItem) };
   }
 
-  /** id 格式与演示链路一致: `vodId|播放组序号|集序号` */
+  /** id 格式与全站约定一致: `vodId|播放组序号|集序号`。
+   * T4(type 4)聚合接口: 剧集地址非直链时先请求 ?ac=player 取真实流。 */
   async playerContent(flag: string, id: string) {
     const [vid, src, ep] = id.split("|");
     const detail = await this.detailContent([vid]);
     const group = detail.vod_play_url[Number(src) ?? 0] ?? detail.vod_play_url[0];
     const episode = group?.[Number(ep) ?? 0] ?? group?.[0];
     if (!episode?.url) throw new Error(`未找到播放地址: ${id}`);
+    const header = headersOf(this.api);
+
+    if (this.cmsType === 4 && !isDirectStream(episode.url)) {
+      for (const param of [`id=${encodeURIComponent(episode.url)}`, `url=${encodeURIComponent(episode.url)}`]) {
+        try {
+          const d = await this.request(`ac=player&${param}`) as CmsResp & Record<string, unknown>;
+          for (const k of ["url", "playUrl", "videoUrl", "src", "source", "link", "durl", "video", "redirect"]) {
+            const s = d[k];
+            if (typeof s === "string" && s.startsWith("http") && isDirectStream(s)) {
+              return { parse: 0, url: s, header, playUrl: "" };
+            }
+          }
+        } catch {
+          /* 尝试下一种参数 */
+        }
+      }
+    }
     return {
-      parse: episode.parse ?? 0,
+      parse: isDirectStream(episode.url) ? 0 : 1,
       url: episode.url,
-      header: { ...UA, Referer: new URL(this.api).origin },
+      header,
       playUrl: "",
     };
   }
