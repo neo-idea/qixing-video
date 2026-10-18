@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useConfig } from "@/lib/store";
 
 const NAV = [
@@ -37,8 +37,13 @@ export function SiteHeader() {
   }, []);
 
   const currentSite = config?.sites.find((site) => site.key === siteKey && (!siteOrigin || site.origin === siteOrigin));
-  /** 下拉仅列出 CMS 采集源(type 0/4): Spider/Jar 源在 Web 端不可用, 列出只是噪音 */
-  const cmsSites = config?.remote ? config.sites.filter((site) => site.type === 0 || site.type === 4) : config?.sites ?? [];
+  /** 全部源保留、CMS 采集源(type 0/4 + AppYs/AppGet)置顶可播, 其余保留但标注 */
+  const isPlayable = (site: { type: number; api: string }) =>
+    site.type === 0 || site.type === 4 || ["csp_AppYs", "csp_AppYsV2", "csp_AppGet", "csp_AppGet2"].includes(site.api);
+  const orderedSites = useMemo(
+    () => [...(config?.sites ?? [])].sort((a, b) => Number(isPlayable(b)) - Number(isPlayable(a))),
+    [config]
+  );
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/6 bg-cinema-page/92 backdrop-blur-md">
@@ -97,13 +102,14 @@ export function SiteHeader() {
             {sourceOpen ? (
               <div className="absolute right-0 top-full z-50 mt-1.5 w-[min(88vw,340px)] overflow-hidden rounded-lg border border-white/8 bg-cinema-panel p-1.5 shadow-cinematic">
                 <div className="flex items-center justify-between px-1.5 pb-1.5 pt-0.5">
-                  <span className="text-[10px] text-cinema-subtle">CMS 采集源（Web 可用）</span>
-                  <span className="text-[10px] text-cinema-subtle">{cmsSites.length} 个</span>
+                  <span className="text-[10px] text-cinema-subtle">全部源（可播置顶）</span>
+                  <span className="text-[10px] text-cinema-subtle">{config?.sites.length ?? 0} 个</span>
                 </div>
                 <div className="max-h-[60vh] overflow-y-auto">
-                  {cmsSites.length ? cmsSites.map((site) => {
+                  {orderedSites.map((site) => {
                     const ref = `${site.origin ?? ""}::${site.key}`;
                     const active = ref === `${siteOrigin}::${siteKey}`;
+                    const playable = isPlayable(site);
                     return (
                     <button
                       key={ref}
@@ -113,7 +119,7 @@ export function SiteHeader() {
                         router.push("/");
                       }}
                       className={`flex w-full items-center gap-2.5 rounded px-2.5 py-2 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${
-                        active ? "bg-cinema-brand/15 text-cinema-brand-soft" : "text-cinema-muted hover:bg-white/6 hover:text-cinema-primary"
+                        active ? "bg-cinema-brand/15 text-cinema-brand-soft" : playable ? "text-cinema-muted hover:bg-white/6 hover:text-cinema-primary" : "text-cinema-subtle/70 hover:bg-white/6"
                       }`}
                     >
                       <span className="grid h-7 w-7 place-items-center rounded-sm bg-[#2f2f2f] text-[11px] font-bold">{site.name.slice(0, 2)}</span>
@@ -121,14 +127,16 @@ export function SiteHeader() {
                         <span className="block truncate text-xs font-medium">{site.name}</span>
                         <span className="block truncate font-mono text-[9px] text-cinema-subtle">{site.originName ? `${site.originName} · ` : ""}{site.api}</span>
                       </span>
-                      <span className="rounded-sm bg-[#2f2f2f] px-1 py-0.5 text-[9px]">T{site.type}</span>
+                      {active ? (
+                        <span className="rounded-sm bg-cinema-brand/20 px-1 py-0.5 text-[9px] text-cinema-brand-soft">当前</span>
+                      ) : playable ? (
+                        <span className="rounded-sm bg-[#2f2f2f] px-1 py-0.5 text-[9px] text-cinema-success">可播</span>
+                      ) : (
+                        <span className="rounded-sm bg-[#2f2f2f] px-1 py-0.5 text-[9px] text-cinema-subtle">不支持</span>
+                      )}
                     </button>
                     );
-                  }) : (
-                    <div className="px-2.5 py-4 text-center text-[11px] leading-relaxed text-cinema-subtle">
-                      当前启用的配置里没有 CMS 采集源<br />Spider/Jar 源需 TVBox 客户端，去设置页导入含采集源的配置
-                    </div>
-                  )}
+                  })}
                 </div>
                 <Link href="/settings" className="mt-1 block rounded border-t border-white/6 px-3 py-2.5 text-xs text-cinema-subtle transition hover:bg-white/5 hover:text-cinema-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft">
                   管理接口源与解析规则
