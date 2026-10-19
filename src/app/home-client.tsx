@@ -6,7 +6,7 @@ import { HeroCarousel } from "@/components/hero-carousel";
 import { RankPanel } from "@/components/rank-panel";
 import { VideoCard } from "@/components/video-card";
 import { VideoRow } from "@/components/video-row";
-import { Button } from "@/components/ui";
+import { Button, Chip, EmptyState, Eyebrow } from "@/components/ui";
 import { useConfig } from "@/lib/store";
 import type { CategoryFilter, VodItem } from "@/lib/types";
 
@@ -27,6 +27,14 @@ function resolveChannel(channelId: string, classes: { type_id: string; type_name
   const hit = classes.find((c) => keywords.some((k) => (c.type_name ?? "").includes(k)));
   return hit ? hit.type_id : null;
 }
+
+const CHANNEL_LABEL: Record<string, string> = {
+  tv: "电视剧",
+  movie: "电影",
+  show: "综艺",
+  anime: "动漫",
+  doc: "纪录片",
+};
 
 export function HomeClient() {
   const params = useSearchParams();
@@ -98,6 +106,7 @@ export function HomeClient() {
     if (!siteKey) return;
     let cancelled = false;
     setLoading(true);
+    if (pg === 1) setList([]);
     const query = new URLSearchParams({ tid, pg: String(pg), ...extend });
     if (siteOrigin) query.set("from", siteOrigin);
     fetch(`/api/site/${siteKey}/category?${query}`)
@@ -133,6 +142,11 @@ export function HomeClient() {
       return true;
     });
   }, [tid, homeList, list]);
+
+  const categoryTitle = useMemo(() => {
+    const matchedClass = classes.find((item) => item.type_id === tid);
+    return matchedClass?.type_name ?? CHANNEL_LABEL[c] ?? "分类片库";
+  }, [classes, tid, c]);
 
   const pick = useCallback((key: string, value: string) => {
     setPg(1);
@@ -177,56 +191,82 @@ export function HomeClient() {
         <div className="mb-4 rounded-xl border border-cinema-warning/25 bg-cinema-warning/10 px-4 py-3 text-xs text-cinema-warning">{notice}</div>
       ) : null}
 
-      <div className="flex flex-col gap-4 lg:flex-row lg:gap-5">
-        <div className="min-w-0 flex-1">
-          <HeroCarousel list={(tid ? list : homeList).slice(0, 5)} />
-        </div>
-        <RankPanel list={visible.slice(0, 10)} />
-      </div>
-
-      {tidFilters.length ? (
-        <div className="mt-3.5 space-y-1.5 rounded-xl bg-cinema-panel/80 p-3.5">
-          {tidFilters.map((filter) => (
-            <div key={filter.key} className="no-scrollbar flex items-center gap-1 overflow-x-auto text-xs">
-              <span className="w-9 shrink-0 text-cinema-subtle">{filter.name}</span>
-              {filter.value.map((value) => {
-                const active = (extend[filter.key] ?? "") === (value === "全部" ? "" : value);
-                return (
-                  <button
-                    key={value}
-                    onClick={() => pick(filter.key, value)}
-                    className={`flex h-10 shrink-0 items-center rounded-md px-3 transition duration-150 active:scale-[0.95] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${
-                      active ? "bg-cinema-brand/18 font-semibold text-cinema-brand-soft" : "text-cinema-muted hover:bg-white/6 hover:text-cinema-primary"
-                    }`}
-                  >
-                    {value}
-                  </button>
-                );
-              })}
-            </div>
-          ))}
+      {!tid ? (
+        <div className="flex flex-col gap-4 lg:flex-row lg:gap-5">
+          <div className="min-w-0 flex-1">
+            <HeroCarousel list={homeList.slice(0, 5)} />
+          </div>
+          <RankPanel list={visible.slice(0, 10)} />
         </div>
       ) : null}
 
       {tid ? (
         <>
-          <div className="mt-5 grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 sm:gap-x-4 sm:gap-y-7 lg:grid-cols-5 xl:grid-cols-6">
-            {visible.map((item, index) => (
-              <VideoCard key={`${item.vod_id}-${index}`} item={item} rank={index < 3 ? index + 1 : undefined} />
-            ))}
-            {loading ? Array.from({ length: 6 }).map((_, index) => (
-              <div key={index} className="space-y-2.5">
-                <div className="aspect-[2/3] animate-pulse rounded-xl bg-white/5" />
-                <div className="h-3.5 w-4/5 animate-pulse rounded bg-white/5" />
-                <div className="h-2.5 w-2/5 animate-pulse rounded bg-white/5" />
+          <section className="mt-1">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div className="min-w-0">
+                <Eyebrow>CATEGORY LIBRARY</Eyebrow>
+                <h1 className="mt-2 text-2xl font-bold tracking-tight text-cinema-primary sm:text-[32px]">{categoryTitle}</h1>
+                <p className="mt-2 text-xs text-cinema-subtle sm:text-sm">{loading ? "正在聚合当前片源…" : "按更新时间排序 · 支持条件筛选"}</p>
               </div>
-            )) : null}
-          </div>
-          <div className="mt-8 text-center">
-            <Button onClick={() => setPg((page) => page + 1)} disabled={loading} variant="secondary" className="rounded-full px-7">
-              {loading ? "正在加载…" : "加载更多内容"}
-            </Button>
-          </div>
+              <Chip tone={loading ? "brand" : "neutral"} size="lg" className="w-fit">
+                {loading ? "加载中" : `${visible.length} 部`}
+              </Chip>
+            </div>
+
+            {tidFilters.length ? (
+              <div className="mt-5 space-y-1.5 rounded-xl bg-cinema-panel/80 p-3.5">
+                {tidFilters.map((filter) => (
+                  <div key={filter.key} className="no-scrollbar flex items-center gap-1 overflow-x-auto text-xs">
+                    <span className="w-9 shrink-0 text-cinema-subtle">{filter.name}</span>
+                    {filter.value.map((value) => {
+                      const active = (extend[filter.key] ?? "") === (value === "全部" ? "" : value);
+                      return (
+                        <button
+                          key={value}
+                          onClick={() => pick(filter.key, value)}
+                          className={`flex h-10 shrink-0 items-center rounded-md px-3 transition duration-150 active:scale-[0.95] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${
+                            active ? "bg-cinema-brand/18 font-semibold text-cinema-brand-soft" : "text-cinema-muted hover:bg-white/6 hover:text-cinema-primary"
+                          }`}
+                        >
+                          {value}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            ) : null}
+
+            {loading && !visible.length ? (
+              <div className="mt-6 grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 sm:gap-x-4 sm:gap-y-7 lg:grid-cols-5 xl:grid-cols-6">
+                {Array.from({ length: 12 }).map((_, index) => (
+                  <div key={index} className="space-y-2.5">
+                    <div className="aspect-[2/3] animate-pulse rounded-xl bg-white/5" />
+                    <div className="h-3.5 w-4/5 animate-pulse rounded bg-white/5" />
+                    <div className="h-2.5 w-2/5 animate-pulse rounded bg-white/5" />
+                  </div>
+                ))}
+              </div>
+            ) : visible.length ? (
+              <>
+                <div className="mt-6 grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 sm:gap-x-4 sm:gap-y-7 lg:grid-cols-5 xl:grid-cols-6">
+                  {visible.map((item, index) => (
+                    <VideoCard key={`${item.vod_id}-${index}`} item={item} />
+                  ))}
+                </div>
+                <div className="mt-8 text-center">
+                  <Button onClick={() => setPg((page) => page + 1)} disabled={loading} variant="secondary" className="rounded-full px-7">
+                    {loading ? "正在加载…" : "加载更多内容"}
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <EmptyState title="暂无匹配内容" description="当前筛选条件下没有找到影片，可以尝试切换年份、地区，或稍后重新进入。">
+                <Button variant="secondary" onClick={() => setExtend({})}>重置筛选</Button>
+              </EmptyState>
+            )}
+          </section>
         </>
       ) : (
         <>
