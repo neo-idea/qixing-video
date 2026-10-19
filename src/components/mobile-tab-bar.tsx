@@ -24,8 +24,8 @@ export function MobileTabBar() {
   }, [pathname]);
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/8 bg-cinema-page pb-[env(safe-area-inset-bottom)] md:hidden">
-      <div className="mx-auto grid max-w-lg grid-cols-5">
+    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-cinema-page/94 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden">
+      <div className="mx-auto grid h-[60px] max-w-lg grid-cols-5">
         {TABS.map((tab) => {
           const active = tab.href.startsWith("/?")
             ? category === (new URLSearchParams(tab.href.split("?")[1]).get("c") ?? "")
@@ -34,11 +34,12 @@ export function MobileTabBar() {
             <Link
               key={tab.label}
               href={tab.href}
-              className={`flex min-h-[52px] flex-1 flex-col items-center justify-center gap-1 px-1 py-1.5 text-[10px] transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${
-                active ? "font-bold text-cinema-brand-soft" : "text-cinema-subtle"
+              className={`relative flex min-h-[52px] flex-1 flex-col items-center justify-center gap-1 px-1 text-[10px] transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${
+                active ? "font-bold text-cinema-brand-soft" : "text-cinema-subtle active:text-cinema-primary"
               }`}
             >
-              <svg viewBox="0 0 24 24" className={`h-5 w-5 ${active ? "fill-cinema-brand-soft" : "fill-cinema-subtle"}`}><path d={tab.icon} /></svg>
+              {active ? <span className="absolute top-0 h-[2px] w-8 rounded-full bg-cinema-brand shadow-brand-glow" /> : null}
+              <svg viewBox="0 0 24 24" className={`h-5 w-5 transition-transform ${active ? "scale-110 fill-cinema-brand-soft" : "fill-cinema-subtle"}`}><path d={tab.icon} /></svg>
               {tab.label}
             </Link>
           );

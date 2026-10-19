@@ -68,7 +68,7 @@ export default async function PlayPage({
         <div className="mt-6 flex flex-wrap items-center justify-center gap-2.5">
           <Link
             href={backHref}
-            className="flex h-11 items-center rounded bg-cinema-brand px-5 text-sm font-bold text-[#063434] transition duration-150 active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft"
+            className="flex h-11 items-center rounded-md bg-cinema-brand px-5 text-sm font-bold text-cinema-on-brand transition duration-150 active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft"
           >
             返回详情换源
           </Link>

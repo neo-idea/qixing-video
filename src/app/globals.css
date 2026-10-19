@@ -2,30 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 腾讯视频设计令牌(取自 v.qq.com 线上实测): 暗色页面 + 品牌青 + 热榜橙 */
+/* Netflix × Apple 设计令牌: 深邃黑、克制层次、精致红与系统化反馈色 */
 :root {
   color-scheme: dark;
-  --surface-page: #141414;
-  --surface-panel: #1f1f1f;
-  --surface-elevated: #212223;
-  --text-primary: #e6e9f0;
-  --text-muted: #a8a8a8;
-  --text-subtle: #818181;
-  --brand-300: #4ce4e4;
-  --brand-500: #00d1d1;
-  --brand-600: #02bfbf;
-  --hot: #ff6022;
-  --success: #34d399;
-  --warning: #ffdc14;
-  --danger: #f87171;
+  --surface-page: #08090b;
+  --surface-panel: #101216;
+  --surface-elevated: #171a20;
+  --text-primary: #f5f5f7;
+  --text-on-brand: #ffffff;
+  --text-muted: #a1a1a6;
+  --text-subtle: #6e6e73;
+  --brand-300: #ff7578;
+  --brand-500: #e50914;
+  --brand-600: #b1060f;
+  --hot: #f97316;
+  --success: #30d158;
+  --warning: #ffd60a;
+  --danger: #ff453a;
   --border-subtle: rgba(255, 255, 255, 0.08);
   --shadow-panel: 0 8px 24px rgba(0, 0, 0, 0.35);
   --shadow-cinematic: 0 16px 48px rgba(0, 0, 0, 0.5);
-  --shadow-brand: 0 6px 18px rgba(0, 209, 209, 0.22);
+  --shadow-brand: 0 10px 30px rgba(229, 9, 20, 0.28);
 }
 
 body {
-  background: var(--surface-page);
+  background:
+    radial-gradient(circle at 10% -10%, rgba(229, 9, 20, 0.12), transparent 34%),
+    radial-gradient(circle at 85% 0%, rgba(94, 92, 230, 0.08), transparent 32%),
+    var(--surface-page);
   font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", system-ui, sans-serif;
   color: var(--text-primary);
 }
@@ -50,14 +54,14 @@ body {
 /* 腾讯式卡片: 扁平深色面板, 6px 小圆角, 无毛玻璃光晕 */
 .panel {
   border: 1px solid var(--border-subtle);
-  background: var(--surface-panel);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 38%), var(--surface-panel);
   box-shadow: none;
 }
 
 /* 腾讯式主按钮: 品牌青实底 + 深青文字, 小圆角 */
 .brand-button {
-  background: linear-gradient(90deg, var(--brand-500), var(--brand-600));
-  color: #063434;
+  background: linear-gradient(135deg, var(--brand-500), var(--brand-600));
+  color: var(--text-on-brand);
   box-shadow: var(--shadow-brand);
 }
 .brand-button:hover {
@@ -91,6 +95,16 @@ summary::-webkit-details-marker {
   display: none;
 }
 
+.surface-hover {
+  background:
+    linear-gradient(120deg, rgba(255, 255, 255, 0.055), transparent 52%),
+    var(--surface-elevated);
+}
+
+.edge-fade-right {
+  mask-image: linear-gradient(to right, black 88%, transparent);
+}
+
 .poster-fallback {
   background: linear-gradient(155deg, #262626 0%, #1a1a1a 100%);
 }
@@ -102,4 +116,35 @@ summary::-webkit-details-marker {
 @keyframes loading-slide {
   0% { transform: translateX(-120%); }
   100% { transform: translateX(320%); }
+}
+
+.movie-sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.08) 48%, transparent 62%);
+  opacity: 0;
+  transform: translateX(-35%);
+  transition: opacity 0.35s ease, transform 0.65s ease;
+  pointer-events: none;
+}
+
+@keyframes source-scan {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(360%); }
+}
+
+.source-progress::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 32%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, transparent, var(--brand-300), var(--brand-500), transparent);
+  animation: source-scan 1.5s ease-in-out infinite;
+}
+.movie-sheen:hover::after,
+.movie-sheen:focus-visible::after {
+  opacity: 1;
+  transform: translateX(35%);
 }

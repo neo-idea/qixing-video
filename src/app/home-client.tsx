@@ -182,10 +182,10 @@ export function HomeClient() {
   return (
     <>
       {notice ? (
-        <div className="mb-4 rounded border border-cinema-warning/25 bg-cinema-warning/10 px-4 py-2.5 text-xs text-cinema-warning">{notice}</div>
+        <div className="mb-4 rounded-xl border border-cinema-warning/25 bg-cinema-warning/10 px-4 py-3 text-xs text-cinema-warning">{notice}</div>
       ) : null}
 
-      <div className="flex flex-col gap-4 lg:flex-row">
+      <div className="flex flex-col gap-4 lg:flex-row lg:gap-5">
         <div className="min-w-0 flex-1">
           <HeroCarousel list={(tid ? list : homeList).slice(0, 5)} />
         </div>
@@ -193,7 +193,7 @@ export function HomeClient() {
       </div>
 
       {!tid ? (
-        <div className="no-scrollbar mt-4 flex gap-2.5 overflow-x-auto sm:grid sm:grid-cols-5 sm:gap-3">
+        <div className="no-scrollbar mt-4 flex gap-2.5 overflow-x-auto pb-1 sm:grid sm:grid-cols-5 sm:gap-3">
           {CHANNELS.map((channel) => {
             const resolved = resolveChannel(channel.id, classes);
             return (
@@ -204,32 +204,35 @@ export function HomeClient() {
                 setPg(1);
                 setTid(resolved ?? "");
               }}
-              className={`group flex min-w-[96px] shrink-0 flex-col justify-center rounded-md border border-white/6 px-3.5 py-2.5 text-left transition duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft sm:min-w-0 ${
+              className={`group flex min-h-[58px] min-w-[112px] shrink-0 flex-col justify-center rounded-xl border border-white/8 px-3.5 py-2.5 text-left transition duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft sm:min-w-0 ${
                 classes.length > 0 && !resolved
                   ? "cursor-not-allowed bg-cinema-panel/40 opacity-40"
-                  : "bg-cinema-panel active:scale-[0.97] hover:border-cinema-brand/50 hover:bg-cinema-elevated"
+                  : "bg-cinema-panel active:scale-[0.97] hover:border-cinema-brand/45 hover:bg-cinema-elevated"
               }`}
             >
-              <span className="text-sm font-bold text-cinema-primary group-hover:text-cinema-brand-soft">{channel.name}</span>
-              <span className="mt-0.5 text-[11px] text-cinema-subtle">{classes.length > 0 && !resolved ? "该源无此分类" : channel.desc}</span>
+              <span className="flex items-center gap-1.5 text-sm font-bold text-cinema-primary group-hover:text-cinema-brand-soft">
+                <span className="h-1 w-1 rounded-full bg-cinema-brand/70" />
+                {channel.name}
+              </span>
+              <span className="mt-1 text-[11px] text-cinema-subtle">{classes.length > 0 && !resolved ? "该源无此分类" : channel.desc}</span>
             </button>
             );
           })}
         </div>
       ) : null}
 
-      <div className="no-scrollbar mt-6 flex items-center gap-5 overflow-x-auto border-b border-white/6 pb-2.5 sm:mt-8">
+      <div className="no-scrollbar mt-6 flex items-center gap-4 overflow-x-auto border-b border-white/8 pb-3 sm:mt-8 sm:gap-5">
         <button
           onClick={() => {
             setTid("");
             setPg(1);
           }}
-          className={`relative h-9 shrink-0 text-sm transition duration-150 active:scale-[0.95] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${
+          className={`relative flex h-11 shrink-0 items-center text-sm transition duration-150 active:scale-[0.95] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${
             !tid ? "font-bold text-cinema-brand-soft" : "text-cinema-muted hover:text-cinema-primary"
           }`}
         >
           精选
-          <span className={`absolute bottom-[-10px] left-1/2 h-[3px] -translate-x-1/2 rounded-t bg-cinema-brand transition-all ${!tid ? "w-8" : "w-0"}`} />
+          <span className={`absolute bottom-[-12px] left-1/2 h-[3px] -translate-x-1/2 rounded-t-full bg-cinema-brand transition-all ${!tid ? "w-8" : "w-0"}`} />
         </button>
         {classes.map((item) => (
           <button
@@ -238,19 +241,19 @@ export function HomeClient() {
               setTid(item.type_id);
               setPg(1);
             }}
-            className={`relative h-9 shrink-0 text-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${
+            className={`relative flex h-11 shrink-0 items-center text-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${
               tid === item.type_id ? "font-bold text-cinema-brand-soft" : "text-cinema-muted hover:text-cinema-primary"
             }`}
           >
             {item.type_name}
-            <span className={`absolute bottom-[-10px] left-1/2 h-[3px] -translate-x-1/2 rounded-t bg-cinema-brand transition-all ${tid === item.type_id ? "w-8" : "w-0"}`} />
+            <span className={`absolute bottom-[-12px] left-1/2 h-[3px] -translate-x-1/2 rounded-t-full bg-cinema-brand transition-all ${tid === item.type_id ? "w-8" : "w-0"}`} />
           </button>
         ))}
         <Chip className="ml-auto shrink-0 sm:hidden">{visible.length} 部</Chip>
       </div>
 
       {tidFilters.length ? (
-        <div className="mt-3.5 space-y-1.5 rounded-md bg-cinema-panel p-3">
+        <div className="mt-3.5 space-y-1.5 rounded-xl bg-cinema-panel/80 p-3.5">
           {tidFilters.map((filter) => (
             <div key={filter.key} className="no-scrollbar flex items-center gap-1 overflow-x-auto text-xs">
               <span className="w-9 shrink-0 text-cinema-subtle">{filter.name}</span>
@@ -260,8 +263,8 @@ export function HomeClient() {
                   <button
                     key={value}
                     onClick={() => pick(filter.key, value)}
-                    className={`h-8 shrink-0 rounded px-2.5 transition duration-150 active:scale-[0.95] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${
-                      active ? "bg-cinema-brand/18 font-semibold text-cinema-brand-soft" : "text-cinema-muted hover:text-cinema-primary"
+                    className={`flex h-10 shrink-0 items-center rounded-md px-3 transition duration-150 active:scale-[0.95] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${
+                      active ? "bg-cinema-brand/18 font-semibold text-cinema-brand-soft" : "text-cinema-muted hover:bg-white/6 hover:text-cinema-primary"
                     }`}
                   >
                     {value}
@@ -275,14 +278,20 @@ export function HomeClient() {
 
       {tid ? (
         <>
-          <div className="mt-5 grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3 sm:gap-x-4 sm:gap-y-6 lg:grid-cols-5 xl:grid-cols-6">
+          <div className="mt-5 grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 sm:gap-x-4 sm:gap-y-7 lg:grid-cols-5 xl:grid-cols-6">
             {visible.map((item, index) => (
               <VideoCard key={`${item.vod_id}-${index}`} item={item} rank={index < 3 ? index + 1 : undefined} />
             ))}
-            {loading ? Array.from({ length: 6 }).map((_, index) => <div key={index} className="aspect-[2/3] animate-pulse rounded-md bg-white/5" />) : null}
+            {loading ? Array.from({ length: 6 }).map((_, index) => (
+              <div key={index} className="space-y-2.5">
+                <div className="aspect-[2/3] animate-pulse rounded-xl bg-white/5" />
+                <div className="h-3.5 w-4/5 animate-pulse rounded bg-white/5" />
+                <div className="h-2.5 w-2/5 animate-pulse rounded bg-white/5" />
+              </div>
+            )) : null}
           </div>
           <div className="mt-8 text-center">
-            <Button onClick={() => setPg((page) => page + 1)} disabled={loading} variant="secondary" className="rounded">
+            <Button onClick={() => setPg((page) => page + 1)} disabled={loading} variant="secondary" className="rounded-full px-7">
               {loading ? "正在加载…" : "加载更多内容"}
             </Button>
           </div>

@@ -17,6 +17,7 @@ const config: Config = {
           muted: "var(--text-muted)",
           primary: "var(--text-primary)",
           brand: "var(--brand-500)",
+          "on-brand": "var(--text-on-brand)",
           "brand-soft": "var(--brand-300)",
           "brand-strong": "var(--brand-600)",
           success: "var(--success)",
