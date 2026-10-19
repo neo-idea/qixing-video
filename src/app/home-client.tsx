@@ -10,14 +10,6 @@ import { Button, Chip } from "@/components/ui";
 import { useConfig } from "@/lib/store";
 import type { CategoryFilter, VodItem } from "@/lib/types";
 
-const CHANNELS = [
-  { id: "tv", name: "剧场", desc: "热播大剧" },
-  { id: "movie", name: "电影", desc: "院线大片" },
-  { id: "anime", name: "动漫", desc: "热血新番" },
-  { id: "show", name: "综艺", desc: "真人秀场" },
-  { id: "doc", name: "纪实", desc: "开阔视野" },
-] as const;
-
 /** 频道语义 → 分类名关键词(不同 CMS 源分类命名不一, 按名称模糊匹配) */
 const CHANNEL_MATCH: Record<string, string[]> = {
   tv: ["剧", "电视", "连续", "国产"],
@@ -192,36 +184,8 @@ export function HomeClient() {
         <RankPanel list={visible.slice(0, 10)} />
       </div>
 
-      {!tid ? (
-        <div className="no-scrollbar mt-4 flex gap-2.5 overflow-x-auto pb-1 sm:grid sm:grid-cols-5 sm:gap-3">
-          {CHANNELS.map((channel) => {
-            const resolved = resolveChannel(channel.id, classes);
-            return (
-            <button
-              key={channel.id}
-              disabled={classes.length > 0 && !resolved}
-              onClick={() => {
-                setPg(1);
-                setTid(resolved ?? "");
-              }}
-              className={`group flex min-h-[58px] min-w-[112px] shrink-0 flex-col justify-center rounded-xl border border-white/8 px-3.5 py-2.5 text-left transition duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft sm:min-w-0 ${
-                classes.length > 0 && !resolved
-                  ? "cursor-not-allowed bg-cinema-panel/40 opacity-40"
-                  : "bg-cinema-panel active:scale-[0.97] hover:border-cinema-brand/45 hover:bg-cinema-elevated"
-              }`}
-            >
-              <span className="flex items-center gap-1.5 text-sm font-bold text-cinema-primary group-hover:text-cinema-brand-soft">
-                <span className="h-1 w-1 rounded-full bg-cinema-brand/70" />
-                {channel.name}
-              </span>
-              <span className="mt-1 text-[11px] text-cinema-subtle">{classes.length > 0 && !resolved ? "该源无此分类" : channel.desc}</span>
-            </button>
-            );
-          })}
-        </div>
-      ) : null}
-
-      <div className="no-scrollbar mt-6 flex items-center gap-4 overflow-x-auto border-b border-white/8 pb-3 sm:mt-8 sm:gap-5">
+      {tid ? (
+        <div className="no-scrollbar mt-6 flex items-center gap-4 overflow-x-auto border-b border-white/8 pb-3 sm:mt-8 sm:gap-5">
         <button
           onClick={() => {
             setTid("");
@@ -251,6 +215,7 @@ export function HomeClient() {
         ))}
         <Chip className="ml-auto shrink-0 sm:hidden">{visible.length} 部</Chip>
       </div>
+      ) : null}
 
       {tidFilters.length ? (
         <div className="mt-3.5 space-y-1.5 rounded-xl bg-cinema-panel/80 p-3.5">
