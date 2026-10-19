@@ -6,7 +6,7 @@ import { HeroCarousel } from "@/components/hero-carousel";
 import { RankPanel } from "@/components/rank-panel";
 import { VideoCard } from "@/components/video-card";
 import { VideoRow } from "@/components/video-row";
-import { Button, Chip } from "@/components/ui";
+import { Button } from "@/components/ui";
 import { useConfig } from "@/lib/store";
 import type { CategoryFilter, VodItem } from "@/lib/types";
 
@@ -183,39 +183,6 @@ export function HomeClient() {
         </div>
         <RankPanel list={visible.slice(0, 10)} />
       </div>
-
-      {tid ? (
-        <div className="no-scrollbar mt-6 flex items-center gap-4 overflow-x-auto border-b border-white/8 pb-3 sm:mt-8 sm:gap-5">
-        <button
-          onClick={() => {
-            setTid("");
-            setPg(1);
-          }}
-          className={`relative flex h-11 shrink-0 items-center text-sm transition duration-150 active:scale-[0.95] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${
-            !tid ? "font-bold text-cinema-brand-soft" : "text-cinema-muted hover:text-cinema-primary"
-          }`}
-        >
-          精选
-          <span className={`absolute bottom-[-12px] left-1/2 h-[3px] -translate-x-1/2 rounded-t-full bg-cinema-brand transition-all ${!tid ? "w-8" : "w-0"}`} />
-        </button>
-        {classes.map((item) => (
-          <button
-            key={item.type_id}
-            onClick={() => {
-              setTid(item.type_id);
-              setPg(1);
-            }}
-            className={`relative flex h-11 shrink-0 items-center text-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${
-              tid === item.type_id ? "font-bold text-cinema-brand-soft" : "text-cinema-muted hover:text-cinema-primary"
-            }`}
-          >
-            {item.type_name}
-            <span className={`absolute bottom-[-12px] left-1/2 h-[3px] -translate-x-1/2 rounded-t-full bg-cinema-brand transition-all ${tid === item.type_id ? "w-8" : "w-0"}`} />
-          </button>
-        ))}
-        <Chip className="ml-auto shrink-0 sm:hidden">{visible.length} 部</Chip>
-      </div>
-      ) : null}
 
       {tidFilters.length ? (
         <div className="mt-3.5 space-y-1.5 rounded-xl bg-cinema-panel/80 p-3.5">
