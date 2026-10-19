@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 
 const TABS = [
   { href: "/", label: "精选", icon: "M4 5.5C4 4.67 4.67 4 5.5 4h13c.83 0 1.5.67 1.5 1.5v9c0 .83-.67 1.5-1.5 1.5H13l-4 3.5V16H5.5A1.5 1.5 0 0 1 4 14.5v-9Z" },
@@ -14,14 +13,8 @@ const TABS = [
 
 export function MobileTabBar() {
   const pathname = usePathname();
-  const [category, setCategory] = useState("");
-
-  useEffect(() => {
-    const sync = () => setCategory(new URLSearchParams(window.location.search).get("c") ?? "");
-    sync();
-    window.addEventListener("popstate", sync);
-    return () => window.removeEventListener("popstate", sync);
-  }, [pathname]);
+  const searchParams = useSearchParams();
+  const category = searchParams.get("c") ?? "";
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-cinema-page/94 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden">
@@ -34,6 +27,7 @@ export function MobileTabBar() {
             <Link
               key={tab.label}
               href={tab.href}
+              aria-current={active ? "page" : undefined}
               className={`relative flex min-h-[52px] flex-1 flex-col items-center justify-center gap-1 px-1 text-[10px] transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${
                 active ? "font-bold text-cinema-brand-soft" : "text-cinema-subtle active:text-cinema-primary"
               }`}

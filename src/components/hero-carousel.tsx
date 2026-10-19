@@ -6,16 +6,23 @@ import { EmptyState, LinkButton } from "@/components/ui";
 
 export function HeroCarousel({ list }: { list: VodItem[] }) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [autoPlay, setAutoPlay] = useState(true);
 
   useEffect(() => {
     setActiveIndex((current) => (current >= list.length ? 0 : current));
   }, [list.length]);
 
   useEffect(() => {
-    if (list.length <= 1) return;
+    if (list.length <= 1 || !autoPlay || document.hidden) return;
     const timer = setInterval(() => setActiveIndex((value) => (value + 1) % list.length), 6500);
     return () => clearInterval(timer);
-  }, [list.length]);
+  }, [list.length, autoPlay]);
+
+  useEffect(() => {
+    const syncVisibility = () => setAutoPlay(!document.hidden);
+    document.addEventListener("visibilitychange", syncVisibility);
+    return () => document.removeEventListener("visibilitychange", syncVisibility);
+  }, []);
 
   const current = list[activeIndex] ?? list[0];
   const go = (direction: 1 | -1) => setActiveIndex((value) => (value + direction + list.length) % list.length);
@@ -25,17 +32,34 @@ export function HeroCarousel({ list }: { list: VodItem[] }) {
   }
 
   return (
-    <section className="group relative aspect-[16/11] min-h-[320px] w-full overflow-hidden rounded-xl bg-cinema-panel ring-1 ring-white/10 sm:aspect-[16/7]">
+    <section
+      className="group relative aspect-[16/11] min-h-[320px] w-full overflow-hidden rounded-xl bg-cinema-panel ring-1 ring-white/10 sm:aspect-[16/7]"
+      role="region"
+      aria-roledescription="carousel"
+      aria-label="首页推荐"
+      onMouseEnter={() => setAutoPlay(false)}
+      onMouseLeave={() => setAutoPlay(true)}
+      onFocus={() => setAutoPlay(false)}
+      onBlur={() => setAutoPlay(true)}
+    >
       {list.map((item, index) => (
         <div
           key={item.vod_id}
+          aria-hidden={index !== activeIndex}
           className="absolute inset-0 overflow-hidden transition-opacity duration-700"
           style={{ opacity: index === activeIndex ? 1 : 0 }}
         >
-          {item.vod_pic ? (
+          {item.vod_pic && /^(https?:)?\/\//i.test(item.vod_pic) ? (
             <>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={item.vod_pic} alt="" referrerPolicy="no-referrer" className="h-full w-full scale-[1.04] object-cover object-top" />
+              <img
+                src={item.vod_pic}
+                alt=""
+                loading={index === 0 ? "eager" : "lazy"}
+                decoding="async"
+                referrerPolicy="no-referrer"
+                className="h-full w-full scale-[1.04] object-cover object-top"
+              />
               <div className="absolute inset-0 bg-black/20" />
             </>
           ) : (
@@ -62,7 +86,7 @@ export function HeroCarousel({ list }: { list: VodItem[] }) {
             <span className="rounded-md border border-white/12 bg-black/50 px-2 py-1 text-[11px] text-white/85">{current.area}</span>
             {current.vod_score ? <span className="text-xs font-bold text-cinema-warning">★ {current.vod_score}</span> : null}
           </div>
-          <h2 className="mb-3 line-clamp-1 text-2xl font-bold leading-tight text-white drop-shadow-lg sm:text-4xl lg:text-[46px]">{current.vod_name}</h2>
+          <h2 className="mb-3 line-clamp-1 text-2xl font-bold leading-tight text-white drop-shadow-lg sm:text-4xl lg:text-[46px]" aria-live="polite">{current.vod_name}</h2>
           <p className="mb-5 line-clamp-1 max-w-xl text-xs text-white/70 sm:text-sm">
             {(current.actors ?? "").split(" / ").slice(0, 3).join(" / ")} {current.content ? `· ${current.content}` : ""}
           </p>

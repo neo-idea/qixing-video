@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useConfig } from "@/lib/store";
 
@@ -16,16 +16,13 @@ const NAV = [
 
 export function SiteHeader() {
   const [keyword, setKeyword] = useState("");
-  const [activeId, setActiveId] = useState("");
   const [sourceOpen, setSourceOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const activeId = searchParams.get("c") ?? "";
   const menuRef = useRef<HTMLDivElement>(null);
   const { config, siteKey, siteOrigin, setSiteKey } = useConfig();
-
-  useEffect(() => {
-    setActiveId(new URLSearchParams(window.location.search).get("c") ?? "");
-  }, [pathname]);
 
   useEffect(() => {
     const close = (event: MouseEvent) => {
@@ -151,27 +148,6 @@ export function SiteHeader() {
           </div>
         </div>
       </div>
-
-      {pathname === "/" ? (
-        <nav className="border-t border-white/6 bg-black/18 lg:hidden" aria-label="分类导航">
-          <div className="no-scrollbar mx-auto flex max-w-[1480px] items-center gap-1 overflow-x-auto px-3 py-2">
-            {NAV.map((item) => {
-              const active = activeId === item.id;
-              return (
-                <Link
-                  key={item.label}
-                  href={item.id ? `/?c=${item.id}` : "/"}
-                  className={`flex h-10 shrink-0 items-center rounded-full px-3.5 text-xs transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft ${
-                    active ? "bg-cinema-brand/16 font-bold text-cinema-brand-soft" : "text-cinema-muted hover:bg-white/6 hover:text-cinema-primary"
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-          </div>
-        </nav>
-      ) : null}
     </header>
   );
 }

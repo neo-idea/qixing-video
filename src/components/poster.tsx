@@ -1,26 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { VodItem } from "@/lib/types";
 
 export function Poster({ item }: { item: VodItem; compact?: boolean }) {
   const [failed, setFailed] = useState(false);
   const [loaded, setLoaded] = useState(false);
-  const hasPicture = Boolean(item.vod_pic) && !failed;
+  const pictureUrl = item.vod_pic;
+  const hasPicture = Boolean(pictureUrl && /^(https?:)?\/\//i.test(pictureUrl)) && !failed;
 
+  useEffect(() => {
+    setFailed(false);
+    setLoaded(false);
+  }, [pictureUrl]);
   return (
     <div className="poster-fallback relative aspect-[2/3] w-full overflow-hidden rounded-[inherit] bg-cinema-elevated">
       {hasPicture ? (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={item.vod_pic}
+            src={pictureUrl}
             alt={item.vod_name}
             loading="lazy"
+            decoding="async"
             referrerPolicy="no-referrer"
             onError={() => setFailed(true)}
             onLoad={() => setLoaded(true)}
-            className={`absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.04] ${loaded ? "opacity-100" : "opacity-0"}`}
+            className={`absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.04] ${loaded ? "scale-100 opacity-100 blur-0" : "scale-105 opacity-0 blur-md"}`}
           />
           {!loaded ? <div className="absolute inset-0 animate-pulse bg-white/6" /> : null}
         </>

@@ -12,6 +12,21 @@ const STATUS_TEXT: Record<PlaybackStatus, string> = {
   failed: "待切换线路",
 };
 
+function readProgress(key: string) {
+  try {
+    const value = Number(localStorage.getItem(key));
+    return Number.isFinite(value) ? value : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function saveProgress(key: string, value: number) {
+  try {
+    localStorage.setItem(key, String(value));
+  } catch {}
+}
+
 export function VideoPlayer({
   src,
   poster,
@@ -30,11 +45,24 @@ export function VideoPlayer({
   const [loading, setLoading] = useState(true);
   const [chromeVisible, setChromeVisible] = useState(true);
   const [attempt, setAttempt] = useState(0);
+  const [resumeTime, setResumeTime] = useState(0);
+  const [resumedAt, setResumedAt] = useState(0);
+  const lastSavedRef = useRef(0);
+  const formatTime = (seconds: number) => {
+    const minute = Math.floor(seconds / 60);
+    const second = Math.floor(seconds % 60);
+    return `${minute}:${String(second).padStart(2, "0")}`;
+  };
+
+  const progressKey = `qixing:play-progress:${src}`;
 
   useEffect(() => {
     setError("");
     setLoading(true);
     setChromeVisible(true);
+    const savedTime = readProgress(progressKey);
+    setResumeTime(savedTime > 15 ? savedTime : 0);
+    setResumedAt(0);
     const video = ref.current;
     if (!video) return;
     let hls: HlsJs | null = null;
@@ -62,8 +90,19 @@ export function VideoPlayer({
     } else {
       video.src = src;
     }
-    return () => hls?.destroy();
-  }, [src, attempt]);
+    return () => {
+      if (video && video.currentTime > 15 && Number.isFinite(video.duration) && video.duration - video.currentTime > 20) {
+        saveProgress(progressKey, video.currentTime);
+      }
+      hls?.destroy();
+    };
+  }, [src, attempt, progressKey]);
+
+  useEffect(() => {
+    if (!resumedAt) return;
+    const timer = setTimeout(() => setResumedAt(0), 3200);
+    return () => clearTimeout(timer);
+  }, [resumedAt]);
 
   const showChrome = chromeVisible || Boolean(error);
 
@@ -81,8 +120,24 @@ export function VideoPlayer({
         poster={poster}
         preload="metadata"
         className="aspect-video w-full bg-black"
-        onLoadedMetadata={() => setLoading(false)}
+        onLoadedMetadata={() => {
+          const video = ref.current;
+          if (video && resumeTime > 15 && resumeTime < video.duration - 20) {
+            video.currentTime = resumeTime;
+            setResumedAt(resumeTime);
+          }
+          setResumeTime(0);
+          setLoading(false);
+        }}
         onCanPlay={() => setLoading(false)}
+        onTimeUpdate={() => {
+          const video = ref.current;
+          const now = Date.now();
+          if (!video || !Number.isFinite(video.duration) || video.duration - video.currentTime <= 20) return;
+          if (now - lastSavedRef.current < 5000) return;
+          lastSavedRef.current = now;
+          saveProgress(progressKey, video.currentTime);
+        }}
         onWaiting={() => {
           setLoading(true);
           setChromeVisible(true);
@@ -102,6 +157,12 @@ export function VideoPlayer({
           setError("视频加载失败，请切换线路或集数");
         }}
       />
+
+      {resumedAt ? (
+        <div className="pointer-events-none absolute left-1/2 top-16 z-30 -translate-x-1/2 rounded-full border border-white/10 bg-black/70 px-4 py-2 text-[11px] font-semibold text-white/85 backdrop-blur-md">
+          已从 {formatTime(resumedAt)} 继续播放
+        </div>
+      ) : null}
 
       {(title || sourceLabel) && !error ? (
         <div className={`pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-3 p-3 transition-opacity duration-300 sm:p-4 ${showChrome ? "opacity-100" : "opacity-0"}`}>

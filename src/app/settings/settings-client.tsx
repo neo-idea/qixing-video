@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Chip, Panel } from "@/components/ui";
+import { Button, Chip, EmptyState, Panel } from "@/components/ui";
 import { useConfig, siteRef } from "@/lib/store";
 import type { SourceBean } from "@/lib/types";
 
@@ -33,10 +33,16 @@ export function SettingsClient() {
     notice,
   } = useConfig();
   const [url, setUrl] = useState("");
+  const [sourceQuery, setSourceQuery] = useState("");
   const [importing, setImporting] = useState(false);
   const [importMsg, setImportMsg] = useState("");
   const remote = Boolean(config?.remote);
   const enabledCount = sources.filter((s) => s.enabled).length;
+  const allSites = config?.sites ?? [];
+  const sourceKeyword = sourceQuery.trim().toLowerCase();
+  const filteredSites = sourceKeyword
+    ? allSites.filter((site) => [site.name, site.key, site.api, site.originName, site.origin].filter(Boolean).join(" ").toLowerCase().includes(sourceKeyword))
+    : allSites;
 
   const onImport = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -144,7 +150,15 @@ export function SettingsClient() {
           </div>
         </div>
         <div className="grid gap-2 sm:grid-cols-2">
-          {config?.sites.map((site) => {
+          <div className="sm:col-span-2">
+            <input
+              value={sourceQuery}
+              onChange={(event) => setSourceQuery(event.target.value)}
+              placeholder="搜索站点名称、类型或接口地址"
+              className="h-11 w-full rounded-lg border border-white/8 bg-cinema-elevated px-4 text-sm text-cinema-primary outline-none transition focus-visible:border focus-visible:border-cinema-brand/60"
+            />
+          </div>
+          {filteredSites.map((site) => {
             const ref = siteRef(site.origin ?? "", site.key);
             const active = ref === currentRef;
             return (
@@ -174,6 +188,11 @@ export function SettingsClient() {
               </button>
             );
           })}
+          {!filteredSites.length ? (
+            <div className="sm:col-span-2">
+              <EmptyState title="没有匹配的站点源" description="换一个关键词，或确认配置里是否包含这个站点。" />
+            </div>
+          ) : null}
         </div>
       </Panel>
 

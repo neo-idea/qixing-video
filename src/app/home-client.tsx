@@ -148,6 +148,11 @@ export function HomeClient() {
     return matchedClass?.type_name ?? CHANNEL_LABEL[c] ?? "分类片库";
   }, [classes, tid, c]);
 
+  const activeFilterCount = useMemo(
+    () => Object.values(extend).filter(Boolean).length,
+    [extend]
+  );
+
   const pick = useCallback((key: string, value: string) => {
     setPg(1);
     setExtend((previous) => ({ ...previous, [key]: value === "全部" ? "" : value }));
@@ -215,7 +220,21 @@ export function HomeClient() {
             </div>
 
             {tidFilters.length ? (
-              <div className="mt-5 space-y-1.5 rounded-xl bg-cinema-panel/80 p-3.5">
+              <div className="sticky top-16 z-30 mt-5 space-y-1.5 rounded-xl border border-white/8 bg-cinema-panel/95 p-3.5 backdrop-blur-xl md:top-[72px]">
+                <div className="flex items-center justify-between gap-3 pb-1.5">
+                  <Eyebrow>筛选条件{activeFilterCount ? ` · 已选 ${activeFilterCount}` : ""}</Eyebrow>
+                  {activeFilterCount ? (
+                    <button
+                      onClick={() => {
+                        setPg(1);
+                        setExtend({});
+                      }}
+                      className="flex h-10 items-center rounded-md px-2.5 text-xs text-cinema-muted transition hover:text-cinema-brand-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft"
+                    >
+                      重置
+                    </button>
+                  ) : null}
+                </div>
                 {tidFilters.map((filter) => (
                   <div key={filter.key} className="no-scrollbar flex items-center gap-1 overflow-x-auto text-xs">
                     <span className="w-9 shrink-0 text-cinema-subtle">{filter.name}</span>

@@ -12,6 +12,15 @@ type SiteStatus = "searching" | "hit" | "empty" | "error";
 
 const SUGGESTIONS = ["繁花", "庆余年", "三体", "流浪地球", "狂飙", "漫长的季节"];
 
+function relevanceScore(item: VodItem, keyword: string) {
+  const name = item.vod_name.trim().toLowerCase();
+  const target = keyword.trim().toLowerCase();
+  if (name === target) return 0;
+  if (name.startsWith(target)) return 1;
+  if (name.includes(target)) return 2;
+  return 3;
+}
+
 export function SearchClient({ q }: { q: string }) {
   const router = useRouter();
   const { config } = useConfig();
@@ -19,14 +28,36 @@ export function SearchClient({ q }: { q: string }) {
   const [groups, setGroups] = useState<Group[]>([]);
   const [statuses, setStatuses] = useState<Record<string, SiteStatus>>({});
   const [done, setDone] = useState(0);
+  const [recent, setRecent] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const searchableSites = useMemo(() => config?.sites.filter((site) => site.searchable !== 0) ?? [], [config]);
   const total = searchableSites.length;
   const searching = Boolean(q) && done < total;
   const resultCount = groups.reduce((sum, group) => sum + group.list.length, 0);
+  const orderedGroups = useMemo(() => {
+    const ranked = groups.map((group) => ({
+      ...group,
+      list: [...group.list].sort((left, right) =>
+        relevanceScore(left, q) - relevanceScore(right, q) || Number(right.vod_score ?? 0) - Number(left.vod_score ?? 0)
+      ),
+    }));
+    return ranked.sort((left, right) =>
+      relevanceScore(left.list[0], q) - relevanceScore(right.list[0], q) ||
+      right.list.length - left.list.length ||
+      left.site.name.localeCompare(right.site.name)
+    );
+  }, [groups, q]);
 
   useEffect(() => setKeyword(q), [q]);
+
+  useEffect(() => {
+    try {
+      setRecent(JSON.parse(localStorage.getItem("qixing:recent-searches") ?? "[]"));
+    } catch {
+      setRecent([]);
+    }
+  }, []);
 
   useEffect(() => {
     if (!config || !q) return;
@@ -60,7 +91,13 @@ export function SearchClient({ q }: { q: string }) {
 
   const submit = (value: string) => {
     const next = value.trim();
-    if (next) router.push(`/search?q=${encodeURIComponent(next)}`);
+    if (!next) return;
+    const nextRecent = [next, ...recent.filter((word) => word !== next)].slice(0, 8);
+    setRecent(nextRecent);
+    try {
+      localStorage.setItem("qixing:recent-searches", JSON.stringify(nextRecent));
+    } catch {}
+    router.push(`/search?q=${encodeURIComponent(next)}`);
   };
 
   return (
@@ -106,6 +143,35 @@ export function SearchClient({ q }: { q: string }) {
               </button>
             ))}
           </div>
+
+          {recent.length ? (
+            <div className="no-scrollbar -mx-4 mt-3 flex items-center gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
+              <span className="shrink-0 text-[11px] text-cinema-subtle">最近</span>
+              {recent.map((word) => (
+                <button
+                  key={word}
+                  onClick={() => {
+                    setKeyword(word);
+                    submit(word);
+                  }}
+                  className="flex h-10 shrink-0 items-center rounded-full border border-white/8 bg-cinema-elevated px-4 text-[11px] text-cinema-muted transition duration-150 active:scale-[0.95] hover:border-white/18 hover:text-cinema-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft"
+                >
+                  {word}
+                </button>
+              ))}
+              <button
+                onClick={() => {
+                  setRecent([]);
+                  try {
+                    localStorage.removeItem("qixing:recent-searches");
+                  } catch {}
+                }}
+                className="flex h-10 shrink-0 items-center rounded-full px-3 text-[11px] text-cinema-subtle transition hover:text-cinema-danger focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft"
+              >
+                清空
+              </button>
+            </div>
+          ) : null}
 
           {q ? (
             <div className="mt-5 rounded-xl border border-white/8 bg-black/18 p-3.5">
@@ -156,7 +222,7 @@ export function SearchClient({ q }: { q: string }) {
           ))}
         </div>
       ) : groups.length ? (
-        groups.map((group) => (
+        orderedGroups.map((group) => (
           <section key={`${group.site.origin ?? ""}::${group.site.key}`} className="mb-8 sm:mb-10">
             <div className="mb-4 flex items-center justify-between gap-3 border-b border-white/8 pb-3">
               <h2 className="flex min-w-0 items-center gap-2.5 truncate text-base font-bold text-cinema-primary sm:text-lg">

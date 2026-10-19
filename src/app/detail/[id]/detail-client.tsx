@@ -13,7 +13,7 @@ export function DetailClient({ id, site, from }: { id: string; site?: string; fr
   const origin = from ?? (site ? undefined : siteOrigin);
   const [detail, setDetail] = useState<VodDetail | null>(null);
   const [error, setError] = useState("");
-  const [sources, setSources] = useState<{ site: string; name: string; item: VodItem }[]>([]);
+  const [sources, setSources] = useState<{ site: string; name: string; playable: boolean; item: VodItem }[]>([]);
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
@@ -39,7 +39,11 @@ export function DetailClient({ id, site, from }: { id: string; site?: string; fr
             .then((result) => {
               if (!alive) return;
               const hit = (result.list ?? []).find((item: VodItem) => item.vod_name === data.vod_name);
-              if (hit) setSources((previous) => [...previous, { site: source.key, name: source.name, item: hit }]);
+          if (hit) {
+            const playable = source.type === 0 || source.type === 4 || ["csp_AppYs", "csp_AppYsV2", "csp_AppGet", "csp_AppGet2"].includes(source.api);
+            setSources((previous) => [...previous, { site: source.key, name: source.name, playable, item: hit }]
+              .sort((left, right) => Number(right.playable) - Number(left.playable) || left.name.localeCompare(right.name)));
+          }
             })
             .catch(() => {});
         });
@@ -76,7 +80,7 @@ export function DetailClient({ id, site, from }: { id: string; site?: string; fr
   return (
     <>
       <section className="relative -mx-3 -mt-4 overflow-hidden px-3 pb-8 pt-6 sm:-mx-4 sm:-mt-6 sm:px-4 sm:pb-10 sm:pt-10 lg:-mx-8 lg:px-8">
-        {detail.vod_pic ? (
+        {detail.vod_pic && /^(https?:)?\/\//i.test(detail.vod_pic) ? (
           <div aria-hidden className="absolute inset-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={detail.vod_pic} alt="" referrerPolicy="no-referrer" className="h-full w-full scale-110 object-cover object-top opacity-25 blur-md" />
@@ -163,9 +167,12 @@ export function DetailClient({ id, site, from }: { id: string; site?: string; fr
                 <Link key={`${source.site}-${source.item.sourceOrigin ?? ""}`} href={`/detail/${source.item.vod_id}?site=${encodeURIComponent(source.site)}${source.item.sourceOrigin ? `&from=${encodeURIComponent(source.item.sourceOrigin)}` : ""}`} className="flex items-center gap-2.5 rounded p-1.5 transition duration-150 active:scale-[0.98] hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft">
                   <span className="h-[57px] w-10 overflow-hidden rounded-sm"><Poster item={source.item} compact /></span>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-medium text-cinema-primary">{source.name}</span>
+                  <span className="block truncate text-sm font-medium text-cinema-primary">{source.name}</span>
                     <span className="mt-0.5 block truncate text-[11px] text-cinema-subtle">{source.item.vod_remarks}</span>
                   </span>
+                <span className={`shrink-0 rounded-md px-1.5 py-1 text-[10px] ${source.playable ? "bg-cinema-success/12 text-cinema-success" : "bg-cinema-warning/12 text-cinema-warning"}`}>
+                  {source.playable ? "可播" : "受限"}
+                </span>
                   {source.item.vod_score ? <span className="text-xs font-bold text-cinema-warning">{source.item.vod_score}</span> : null}
                 </Link>
               ))}
