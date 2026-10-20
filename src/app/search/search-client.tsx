@@ -13,6 +13,15 @@ type SiteStatus = "searching" | "hit" | "empty" | "error";
 
 const SUGGESTIONS = ["繁花", "庆余年", "三体", "流浪地球", "狂飙", "漫长的季节"];
 
+function isWebRunnableSite(site: SourceBean, remote?: boolean) {
+  if (!remote) return true;
+  return (
+    site.type === 0 ||
+    site.type === 4 ||
+    ["csp_AppYs", "csp_AppYsV2", "csp_AppGet", "csp_AppGet2"].includes(site.api)
+  );
+}
+
 export function SearchClient({ q }: { q: string }) {
   const router = useRouter();
   const { config } = useConfig();
@@ -23,7 +32,10 @@ export function SearchClient({ q }: { q: string }) {
   const [recent, setRecent] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const searchableSites = useMemo(() => config?.sites.filter((site) => site.searchable !== 0) ?? [], [config]);
+  const searchableSites = useMemo(
+    () => config?.sites.filter((site) => site.searchable !== 0 && isWebRunnableSite(site, config.remote)) ?? [],
+    [config]
+  );
   const total = searchableSites.length;
   const searching = Boolean(q) && done < total;
   const resultCount = groups.reduce((sum, group) => sum + group.list.length, 0);
@@ -54,7 +66,7 @@ export function SearchClient({ q }: { q: string }) {
   useEffect(() => {
     if (!config || !q) return;
     let alive = true;
-    const sites = config.sites.filter((site) => site.searchable !== 0);
+    const sites = config.sites.filter((site) => site.searchable !== 0 && isWebRunnableSite(site, config.remote));
     setGroups([]);
     setDone(0);
     setStatuses(Object.fromEntries(sites.map((site) => [`${site.origin ?? ""}::${site.key}`, "searching"])));

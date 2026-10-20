@@ -5,6 +5,8 @@ import type { SiteConfig, SourceBean } from "@/lib/types";
 
 const SOURCES_KEY = "qx_sources";
 const SITE_REF_KEY = "qx_site_ref";
+const DEFAULT_SOURCE_URL = "https://gh-proxy.com/https://raw.githubusercontent.com/xmbjm/svip/refs/heads/main/svip.json";
+const DEFAULT_SOURCE_NAME = "STREAM-LIB 时光线路";
 /** 兼容旧版单配置存储 */
 const LEGACY_API_KEY = "qx_api_url";
 const LEGACY_LINE_KEY = "qx_line_url";
@@ -65,7 +67,10 @@ function readEntries(): SourceEntry[] {
   const lineUrl = localStorage.getItem(LEGACY_LINE_KEY) ?? "";
   const apiUrl = localStorage.getItem(LEGACY_API_KEY) ?? "";
   const url = lineUrl || apiUrl;
-  if (!url) return [];
+  if (!url) {
+    if (raw !== null) return [];
+    return [{ id: uid(), name: DEFAULT_SOURCE_NAME, url: DEFAULT_SOURCE_URL, enabled: true, addedAt: Date.now() }];
+  }
   const name = localStorage.getItem(LEGACY_LINE_NAME_KEY) || hostOf(url);
   return [{ id: uid(), name, url, enabled: true, addedAt: Date.now() }];
 }
