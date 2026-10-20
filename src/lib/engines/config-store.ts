@@ -171,7 +171,9 @@ export async function fetchSiteConfig(raw: string): Promise<SiteConfig> {
   json.parses ??= [];
   json.flags ??= [];
   json.rules ??= [];
-  return normalizeSites(json);
+  const normalized = normalizeSites(json);
+  cache.set(raw, { config: normalized, at: Date.now() });
+  return normalized;
 }
 
 /** 带 TTL 缓存的配置解析, 供 /api/config/load 与各站点路由共用 */
@@ -182,7 +184,6 @@ export async function resolveConfig(raw: string | null | undefined): Promise<Res
   if (hit && Date.now() - hit.at < TTL_MS) return { config: hit.config, source: "remote" };
   try {
     const config = await fetchSiteConfig(url);
-    cache.set(url, { config, at: Date.now() });
     return { config, source: "remote" };
   } catch (e) {
     return { config: siteConfig, source: "builtin", error: (e as Error).message };
@@ -201,12 +202,43 @@ export async function fetchSubscription(raw: string): Promise<{ lines: Subscript
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const decoded = findResult(await res.text(), null);
   if (!decoded) throw new Error("订阅解密失败");
-  const json = parseLoose(decoded) as { urls?: { url: string; name?: string }[] };
+  const json = parseLoose(decoded) as { urls?: unknown };
   if (!Array.isArray(json.urls) || !json.urls.length) throw new Error("订阅缺少 urls 字段");
   return {
-    lines: json.urls.map((line, index) => ({
-      url: line.url,
-      name: line.name?.trim() || `线路 ${index + 1}`,
-    })),
+    lines: json.urls
+      .map((line, index) => {
+        const entry = line as { url?: unknown; name?: unknown };
+        const url = typeof entry.url === "string" ? entry.url.trim() : "";
+        const name = typeof entry.name === "string" ? entry.name.trim() : "";
+        return { url, name: name || `线路 ${index + 1}` };
+      })
+      .filter((line) => line.url),
   };
+}
+
+function isWebPlayableSite(site: SourceBean) {
+  return site.type === 0 || site.type === 4 || ["csp_AppYs", "csp_AppYsV2", "csp_AppGet", "csp_AppGet2"].includes(site.api);
+}
+
+/** 线路库导入前逐条体检: 可播源数量决定是否默认启用, 失效线路保留给用户手动重试 */
+export async function inspectSubscription(raw: string): Promise<{ lines: SubscriptionLine[] }> {
+  const { lines } = await fetchSubscription(raw);
+  const inspected = await Promise.all(
+    lines.map(async (line) => {
+      try {
+        const config = await fetchSiteConfig(line.url);
+        const playableCount = config.sites.filter(isWebPlayableSite).length;
+        return {
+          ...line,
+          status: playableCount ? ("available" as const) : ("limited" as const),
+          siteCount: config.sites.length,
+          playableCount,
+          error: null,
+        };
+      } catch (e) {
+        return { ...line, status: "failed" as const, siteCount: 0, playableCount: 0, error: (e as Error).message };
+      }
+    })
+  );
+  return { lines: inspected };
 }

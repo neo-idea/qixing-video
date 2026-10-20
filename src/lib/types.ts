@@ -34,6 +34,10 @@ export interface SniffRule {
 export interface SubscriptionLine {
   url: string;
   name: string;
+  status?: "available" | "limited" | "failed";
+  siteCount?: number;
+  playableCount?: number;
+  error?: string | null;
 }
 
 export interface SiteConfig {

@@ -2,10 +2,16 @@
 
 import { useState } from "react";
 import { Button, Chip, EmptyState, Panel } from "@/components/ui";
-import { useConfig, siteRef } from "@/lib/store";
+import { useConfig, siteRef, type SourceEntry } from "@/lib/store";
 import type { SourceBean } from "@/lib/types";
 
 const PARSE_LABEL: Record<number, string> = { 0: "网页嗅探", 1: "Json 解析", 2: "Json 并发", 3: "扩展解析" };
+const STREAM_LIB_CATALOG_URL = "https://raw.githubusercontent.com/talentneo/STREAM-LIB-REPO/refs/heads/main/stream-lib-cat.json";
+const SOURCE_STATUS: Record<NonNullable<SourceEntry["status"]>, { label: string; tone: "success" | "warning" | "neutral" }> = {
+  available: { label: "可用", tone: "success" },
+  limited: { label: "Web 受限", tone: "warning" },
+  failed: { label: "失效", tone: "neutral" },
+};
 
 /** Web 端实际可运行的引擎: 采集源可用, Spider/Jar 源无法在浏览器运行 */
 function engineOf(site: SourceBean, remote?: boolean) {
@@ -44,9 +50,7 @@ export function SettingsClient() {
     ? allSites.filter((site) => [site.name, site.key, site.api, site.originName, site.origin].filter(Boolean).join(" ").toLowerCase().includes(sourceKeyword))
     : allSites;
 
-  const onImport = async (event: React.FormEvent) => {
-    event.preventDefault();
-    const target = url.trim();
+  const importTarget = async (target: string) => {
     if (!target || importing) return;
     setImporting(true);
     setImportMsg("");
@@ -61,13 +65,22 @@ export function SettingsClient() {
     }
   };
 
+  const onImport = async (event: React.FormEvent) => {
+    event.preventDefault();
+    await importTarget(url.trim());
+  };
+
+  const importStreamLib = async () => {
+    await importTarget(STREAM_LIB_CATALOG_URL);
+  };
+
   return (
     <div className="mx-auto max-w-5xl">
       <Panel className="mb-4 rounded-xl p-4 sm:p-6">
         <p className="text-[11px] font-semibold tracking-[0.22em] text-cinema-subtle">SOURCE CONTROL</p>
         <h1 className="mt-2 text-xl font-bold text-cinema-primary sm:text-3xl">接口源设置</h1>
         <p className="mt-3 max-w-3xl text-xs leading-relaxed text-cinema-subtle sm:text-sm">
-          对应 APK SettingActivity 的 api_url，支持 `地址;pk;密码`、Base64/AES 加密配置、JSONC 注释配置与 `urls` 多线路订阅。可导入多份配置并行使用，按开关自由启停；启用配置的站点、解析接口与嗅探规则将合并生效（type 0/4 采集源真实请求，Spider/Jar 源需 TVBox 客户端）。
+          对应 APK SettingActivity 的 api_url，支持 `地址;pk;密码`、Base64/AES 加密配置、JSONC 注释配置与 `urls` 多线路订阅。STREAM-LIB 线路库会逐条体检，自动启用含 Web 可播源的线路；失效线路保留为关闭状态，可随时重试。
         </p>
         <div className="mt-5 grid gap-2.5 sm:grid-cols-4">
           <div className="rounded-xl border border-white/8 bg-cinema-elevated p-3.5"><p className="text-[11px] text-cinema-subtle">已导入配置</p><p className="mt-1 text-2xl font-bold text-cinema-primary">{sources.length}</p></div>
@@ -75,16 +88,21 @@ export function SettingsClient() {
           <div className="rounded-xl border border-white/8 bg-cinema-elevated p-3.5"><p className="text-[11px] text-cinema-subtle">站点源</p><p className="mt-1 text-2xl font-bold text-cinema-primary">{config?.sites.length ?? 0}</p></div>
           <div className="rounded-xl border border-white/8 bg-cinema-elevated p-3.5"><p className="text-[11px] text-cinema-subtle">解析接口</p><p className="mt-1 text-2xl font-bold text-cinema-primary">{config?.parses.length ?? 0}</p></div>
         </div>
-        <form className="mt-6 flex flex-col gap-3 sm:flex-row" onSubmit={onImport}>
+        <form className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center" onSubmit={onImport}>
           <input
             value={url}
             onChange={(event) => setUrl(event.target.value)}
             placeholder="粘贴配置或订阅地址，可连续导入多份"
             className="h-12 w-full flex-1 rounded-full border border-white/10 bg-cinema-elevated px-5 py-4 text-sm text-cinema-primary outline-none transition focus-visible:border focus-visible:border-cinema-brand/60"
           />
-          <Button type="submit" size="lg" disabled={importing || !url.trim()} className="w-full rounded sm:w-auto">
-            {importing ? "导入中…" : "导入"}
-          </Button>
+          <div className="flex gap-2">
+            <Button type="submit" size="lg" disabled={importing || !url.trim()} className="flex-1 rounded sm:flex-none">
+              {importing ? "导入中…" : "导入"}
+            </Button>
+            <Button type="button" variant="secondary" size="lg" disabled={importing} onClick={importStreamLib} className="flex-1 rounded sm:flex-none">
+              STREAM-LIB
+            </Button>
+          </div>
         </form>
         {importMsg ? (
           <p className="mt-3 rounded-xl border border-cinema-brand/25 bg-cinema-brand/10 p-3 text-xs text-cinema-brand-soft">{importMsg}</p>
@@ -114,11 +132,19 @@ export function SettingsClient() {
               >
                 <Switch checked={entry.enabled} onChange={() => toggleSource(entry.id)} label={`启用 ${entry.name}`} />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-cinema-primary">
+                  <p className="flex min-w-0 items-center gap-2">
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-cinema-primary">
                     {entry.name}
-                    {entry.enabled ? <span className="ml-2 text-[10px] text-cinema-success">生效中</span> : null}
+                    </span>
+                    {entry.enabled ? <span className="shrink-0 text-[10px] text-cinema-success">生效中</span> : null}
+                    {entry.status ? <Chip tone={SOURCE_STATUS[entry.status].tone} size="sm">{SOURCE_STATUS[entry.status].label}</Chip> : null}
                   </p>
-                  <p className="mt-0.5 truncate font-mono text-[10px] text-cinema-subtle">{entry.url}</p>
+                  <p className="mt-0.5 truncate font-mono text-[10px] text-cinema-subtle" title={entry.error ?? undefined}>{entry.url}</p>
+                  <p className="mt-1 flex flex-wrap gap-1.5 text-[10px] text-cinema-subtle">
+                    {typeof entry.siteCount === "number" ? <span>{entry.siteCount} 个站点</span> : null}
+                    {typeof entry.playableCount === "number" ? <span>· {entry.playableCount} 个可播</span> : null}
+                    {entry.error ? <span className="text-cinema-warning">· {entry.error}</span> : null}
+                  </p>
                 </div>
                 <button
                   onClick={() => removeSource(entry.id)}

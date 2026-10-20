@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useSyncExternalStore } from "react";
-import type { SiteConfig, SourceBean, SubscriptionLine } from "@/lib/types";
+import type { SiteConfig, SourceBean } from "@/lib/types";
 
 const SOURCES_KEY = "qx_sources";
 const SITE_REF_KEY = "qx_site_ref";
@@ -17,6 +17,11 @@ export interface SourceEntry {
   url: string;
   enabled: boolean;
   addedAt: number;
+  status?: "available" | "limited" | "failed";
+  siteCount?: number;
+  playableCount?: number;
+  error?: string | null;
+  subscriptionUrl?: string;
 }
 
 type LoadResult = SiteConfig & { error?: string; remote?: boolean; requestedUrl?: string };
@@ -163,7 +168,7 @@ function ensureInit() {
 }
 
 /**
- * 导入配置/订阅: 订阅(urls 结构)展开为多条线路条目(默认关闭),
+ * 导入配置/订阅: 订阅(urls 结构)展开为多条线路条目(可用自动启用, 失效保留关闭),
  * 直连配置为单条(默认开启)。导入后立即刷新合并配置。
  */
 async function addSourceAction(url: string): Promise<string> {
@@ -172,22 +177,52 @@ async function addSourceAction(url: string): Promise<string> {
   if (json.error) throw new Error(json.error);
   const sources = store.sources;
   if (json.subscription?.lines?.length) {
-    const exists = new Set(sources.map((e) => e.url));
-    const fresh = json.subscription.lines
-      .filter((l: SubscriptionLine) => !exists.has(l.url))
-      .map((l: SubscriptionLine) => ({
+    const inspectedAt = Date.now();
+    const next = [...sources];
+    let addedCount = 0;
+    let updatedCount = 0;
+
+    for (const line of json.subscription.lines) {
+      const index = next.findIndex((entry) => entry.url === line.url);
+      const metadata = {
+        status: line.status,
+        siteCount: line.siteCount,
+        playableCount: line.playableCount,
+        error: line.error ?? null,
+        subscriptionUrl: url,
+      };
+
+      if (index >= 0) {
+        const existing = next[index];
+        const legacySubscriptionEntry = existing.status === undefined;
+        next[index] = {
+          ...existing,
+          name: line.name || existing.name,
+          enabled: line.status === "available" && legacySubscriptionEntry ? true : existing.enabled,
+          ...metadata,
+        };
+        updatedCount++;
+        continue;
+      }
+
+      next.push({
         id: uid(),
-        name: l.name,
-        url: l.url,
-        enabled: false,
-        addedAt: Date.now(),
-      }));
-    if (!fresh.length) return "该订阅的线路均已存在，可在下方列表中开启";
-    const next = [...sources, ...fresh];
+        name: line.name,
+        url: line.url,
+        enabled: line.status === "available",
+        addedAt: inspectedAt,
+        ...metadata,
+      });
+      addedCount++;
+    }
+
     persist(next);
     setStore({ sources: next });
     reload(next);
-    return `识别为多线路订阅，已导入 ${fresh.length} 条线路（默认关闭，请按需开启）`;
+    const available = json.subscription.lines.filter((line) => line.status === "available").length;
+    const failed = json.subscription.lines.filter((line) => line.status === "failed").length;
+    const summary = available ? `自动启用 ${available} 条可用线路` : "未发现 Web 端可播线路，请手动检查";
+    return `识别为多线路订阅：新增 ${addedCount} 条、刷新 ${updatedCount} 条；${summary}${failed ? `，${failed} 条当前失效` : ""}`;
   }
   if (!json.sites?.length) throw new Error("配置解析成功但未发现站点源");
   if (sources.some((e) => e.url === url)) return "该配置已在列表中";

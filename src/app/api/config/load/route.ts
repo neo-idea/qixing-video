@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchSubscription, fetchSiteConfig, normalizeApiUrl } from "@/lib/engines/config-store";
+import { inspectSubscription, fetchSiteConfig, normalizeApiUrl } from "@/lib/engines/config-store";
 import { siteConfig } from "@/lib/config";
 import type { SiteConfig } from "@/lib/types";
 
@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
     } catch (e) {
       if ((e as Error).message !== "SUBSCRIPTION") throw e;
       // 多线路订阅: 不含 sites, 携带线路列表回落内置源, 由设置页选择线路
-      const subscription = await fetchSubscription(raw);
+      const subscription = await inspectSubscription(raw);
       return NextResponse.json({
         ...siteConfig,
         subscription,
