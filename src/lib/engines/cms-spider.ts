@@ -48,7 +48,7 @@ function parseXmlResp(text: string): CmsResp {
     return m ? dec(m[1]) : "";
   };
   const resp: CmsResp = {};
-  const classes = [...text.matchAll(/<type id="([^"]*)">([\\s\S]*?)<\/type>/g)].map((m) => ({
+  const classes = [...text.matchAll(/<ty id="([^"]*)">([\s\S]*?)<\/ty>/g)].map((m) => ({
     type_id: m[1],
     type_name: dec(m[2]),
   }));
@@ -172,7 +172,7 @@ export class CmsSpider implements Spider {
   }
 
   async homeContent() {
-    const [meta, latest] = await Promise.all([this.request("ac=list"), this.request(`${this.listAc}&pg=1`)]);
+    const [meta, latest] = await Promise.all([this.request("ac=list"), this.request(`ac=${this.listAc}&pg=1`)]);
     const classes = (meta.class ?? []).map((c) => ({ type_id: String(c.type_id), type_name: c.type_name }));
     if (!classes.length) {
       // 部分 XML 接口不提供分类表, 从列表 tid/type 去重反推
@@ -196,12 +196,12 @@ export class CmsSpider implements Spider {
       .filter(([, v]) => v && v !== "全部")
       .map(([k, v]) => `&${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
       .join("");
-    const data = await this.request(`${this.listAc}&t=${encodeURIComponent(tid)}&pg=${pg}${extra}`);
+    const data = await this.request(`ac=${this.listAc}&t=${encodeURIComponent(tid)}&pg=${pg}${extra}`);
     return { list: (data.list ?? []).map(toVodItem) };
   }
 
   async detailContent(ids: string[]) {
-    const data = await this.request(`${this.listAc}&ids=${encodeURIComponent(ids[0])}`);
+    const data = await this.request(`ac=${this.listAc}&ids=${encodeURIComponent(ids[0])}`);
     const v = data.list?.[0];
     if (!v) throw new Error(`未找到影片: ${ids[0]}`);
     const { from, episodes } = parsePlaySources(v);
@@ -217,7 +217,7 @@ export class CmsSpider implements Spider {
   }
 
   async searchContent(key: string) {
-    const data = await this.request(`${this.listAc}&wd=${encodeURIComponent(key)}`);
+    const data = await this.request(`ac=${this.listAc}&wd=${encodeURIComponent(key)}`);
     return { list: (data.list ?? []).map(toVodItem) };
   }
 

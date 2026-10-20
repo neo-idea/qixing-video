@@ -1,9 +1,6 @@
 import type { VodDetail, VodItem } from "@/lib/types";
 
 const HLS = [
-  "/v1.mp4",
-  "/v2.mp4",
-  "/v3.mp4",
   "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
   "https://test-streams.mux.dev/tos_ismc/main.m3u8",
 ];
