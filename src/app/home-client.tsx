@@ -13,11 +13,11 @@ import { useSourceHome } from "@/lib/use-source-home";
 
 /** 频道语义 → 分类名关键词(不同 CMS 源分类命名不一, 按名称模糊匹配) */
 const CHANNEL_MATCH: Record<string, string[]> = {
-  tv: ["剧", "电视", "连续", "国产"],
-  movie: ["电影", "片"],
-  anime: ["动漫", "动画", "番"],
-  show: ["综艺", "秀"],
-  doc: ["纪", "记录", "纪录"],
+  tv: ["国产剧", "香港剧", "连续剧", "电视剧", "剧", "电视"],
+  movie: ["动作片", "喜剧片", "科幻片", "爱情片", "剧情片", "战争片", "电影", "片"],
+  anime: ["国产动漫", "日韩动漫", "欧美动漫", "动漫", "动画", "番"],
+  show: ["大陆综艺", "港台综艺", "日韩综艺", "欧美综艺", "综艺", "秀"],
+  doc: ["记录片", "纪录片", "纪录", "记录", "纪"],
 };
 
 /** 把频道入口解析为当前源的真实分类 id; 演示源(type_id 即频道名)原样返回;
@@ -25,8 +25,11 @@ const CHANNEL_MATCH: Record<string, string[]> = {
 function resolveChannel(channelId: string, classes: { type_id: string; type_name: string }[]): string | null {
   if (!classes.length || classes.some((c) => c.type_id === channelId)) return channelId;
   const keywords = CHANNEL_MATCH[channelId] ?? [];
-  const hit = classes.find((c) => keywords.some((k) => (c.type_name ?? "").includes(k)));
-  return hit ? hit.type_id : null;
+  for (const keyword of keywords) {
+    const hit = classes.find((c) => (c.type_name ?? "").includes(keyword));
+    if (hit) return hit.type_id;
+  }
+  return null;
 }
 
 const CHANNEL_LABEL: Record<string, string> = {

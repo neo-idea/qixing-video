@@ -193,7 +193,7 @@ export class CmsSpider implements Spider {
 
   async categoryContent(tid: string, pg: number, _filter: boolean, extend: Record<string, string>) {
     const extra = Object.entries(extend)
-      .filter(([, v]) => v && v !== "全部")
+      .filter(([key, v]) => v && v !== "全部" && !["tid", "pg", "from"].includes(key))
       .map(([k, v]) => `&${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
       .join("");
     const data = await this.request(`ac=${this.listAc}&t=${encodeURIComponent(tid)}&pg=${pg}${extra}`);
@@ -218,6 +218,10 @@ export class CmsSpider implements Spider {
 
   async searchContent(key: string) {
     const data = await this.request(`ac=${this.listAc}&wd=${encodeURIComponent(key)}`);
+    const upstream = data as CmsResp & { code?: unknown; msg?: string };
+    if (!(data.list ?? []).length && upstream.code !== undefined && upstream.msg) {
+      throw new Error(upstream.msg);
+    }
     return { list: (data.list ?? []).map(toVodItem) };
   }
 
