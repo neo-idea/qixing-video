@@ -4,15 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useConfig } from "@/lib/store";
-
-const NAV = [
-  { id: "", label: "精选" },
-  { id: "tv", label: "电视剧" },
-  { id: "movie", label: "电影" },
-  { id: "show", label: "综艺" },
-  { id: "anime", label: "动漫" },
-  { id: "doc", label: "纪录片" },
-];
+import { useSourceHome } from "@/lib/use-source-home";
 
 export function SiteHeader() {
   const [keyword, setKeyword] = useState("");
@@ -23,6 +15,7 @@ export function SiteHeader() {
   const activeId = searchParams.get("c") ?? "";
   const menuRef = useRef<HTMLDivElement>(null);
   const { config, siteKey, siteOrigin, setSiteKey } = useConfig();
+  const { data: sourceHome, loading: categoriesLoading } = useSourceHome(siteKey, siteOrigin);
 
   useEffect(() => {
     const close = (event: MouseEvent) => {
@@ -40,6 +33,20 @@ export function SiteHeader() {
     [config]
   );
   const playableCount = orderedSites.filter(isPlayable).length;
+  const nav = useMemo(() => {
+    const seen = new Set<string>();
+    const sourceCategories = (sourceHome?.classes ?? [])
+      .filter((item) => {
+        const id = item.type_id.trim();
+        const label = item.type_name.trim();
+        const valid = Boolean(id && label) && !seen.has(id);
+        if (valid) seen.add(id);
+        return valid;
+      })
+      .map((item) => ({ id: item.type_id.trim(), label: item.type_name.trim() }));
+    return [{ id: "", label: "精选" }, ...sourceCategories];
+  }, [sourceHome]);
+  const selectedId = nav.some((item) => item.id === activeId) ? activeId : "";
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/8 bg-cinema-page/94 backdrop-blur-xl">
@@ -55,18 +62,21 @@ export function SiteHeader() {
           </span>
         </Link>
 
-        <nav className="hidden items-center lg:flex" aria-label="主导航">
-          {NAV.map((item) => {
-            const active = pathname === "/" && activeId === item.id;
+        <nav className="hidden min-w-0 flex-1 items-center overflow-x-auto no-scrollbar lg:flex" aria-label="主导航">
+          {categoriesLoading && !sourceHome ? (
+            <span className="px-3.5 text-xs text-cinema-subtle" aria-live="polite">分类读取中…</span>
+          ) : null}
+          {nav.map((item) => {
+            const active = pathname === "/" && selectedId === item.id;
             return (
               <Link
-                key={item.label}
+                key={item.id || "featured"}
                 href={item.id ? `/?c=${item.id}` : "/"}
-                className={`relative flex h-16 items-center px-3.5 text-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft xl:px-4 md:h-[72px] ${
+                className={`relative flex h-16 max-w-[128px] shrink-0 items-center px-3.5 text-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cinema-brand-soft xl:px-4 md:h-[72px] ${
                   active ? "font-bold text-cinema-brand-soft" : "text-cinema-primary/78 hover:text-cinema-brand-soft"
                 }`}
               >
-                {item.label}
+                <span className="truncate">{item.label}</span>
                 <span className={`absolute bottom-0 h-[3px] rounded-t-full bg-cinema-brand transition-all duration-200 ${active ? "w-7 shadow-brand-glow" : "w-0"}`} />
               </Link>
             );

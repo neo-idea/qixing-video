@@ -8,7 +8,8 @@ import { VideoCard } from "@/components/video-card";
 import { VideoRow } from "@/components/video-row";
 import { Button, Chip, EmptyState, Eyebrow } from "@/components/ui";
 import { useConfig } from "@/lib/store";
-import type { CategoryFilter, VodItem } from "@/lib/types";
+import type { VodItem } from "@/lib/types";
+import { useSourceHome } from "@/lib/use-source-home";
 
 /** 频道语义 → 分类名关键词(不同 CMS 源分类命名不一, 按名称模糊匹配) */
 const CHANNEL_MATCH: Record<string, string[]> = {
@@ -39,9 +40,10 @@ const CHANNEL_LABEL: Record<string, string> = {
 export function HomeClient() {
   const params = useSearchParams();
   const { siteKey, siteOrigin, config, loading: cfgLoading, notice } = useConfig();
-  const [classes, setClasses] = useState<{ type_id: string; type_name: string }[]>([]);
-  const [filters, setFilters] = useState<Record<string, CategoryFilter[]>>({});
-  const [sourceHomeList, setSourceHomeList] = useState<VodItem[]>([]);
+  const { data: sourceHome } = useSourceHome(siteKey, siteOrigin);
+  const classes = useMemo(() => sourceHome?.classes ?? [], [sourceHome]);
+  const filters = useMemo(() => sourceHome?.filters ?? {}, [sourceHome]);
+  const sourceHomeList = useMemo(() => sourceHome?.list ?? [], [sourceHome]);
   const [aggList, setAggList] = useState<VodItem[]>([]);
   const [list, setList] = useState<VodItem[]>([]);
   const [tid, setTid] = useState("");
@@ -80,27 +82,6 @@ export function HomeClient() {
       cancelled = true;
     };
   }, [config]);
-
-  useEffect(() => {
-    if (!siteKey) return;
-    let cancelled = false;
-    setLoading(true);
-    const from = siteOrigin ? `?from=${encodeURIComponent(siteOrigin)}` : "";
-    fetch(`/api/site/${siteKey}/home${from}`)
-      .then((response) => response.json())
-      .then((data) => {
-        if (cancelled) return;
-        setClasses(data.class ?? []);
-        setFilters(data.filters ?? {});
-        setSourceHomeList(data.list ?? []);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [siteKey, siteOrigin]);
 
   useEffect(() => {
     if (!siteKey) return;
