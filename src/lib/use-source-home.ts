@@ -7,6 +7,7 @@ export interface SourceHomeData {
   classes: { type_id: string; type_name: string }[];
   filters: Record<string, CategoryFilter[]>;
   list: VodItem[];
+  error?: string;
 }
 
 interface SourceHomeSnapshot {
@@ -30,6 +31,7 @@ function normalize(data: Record<string, unknown>): SourceHomeData {
     ),
     filters: (data.filters ?? {}) as Record<string, CategoryFilter[]>,
     list: (Array.isArray(data.list) ? data.list : []) as VodItem[],
+    error: typeof data.error === "string" ? data.error : undefined,
   };
 }
 
@@ -47,7 +49,7 @@ function loadSourceHome(key: string, siteKey: string, siteOrigin: string) {
       cache.set(key, data);
       return data;
     })
-    .catch(() => ({ classes: [], filters: {}, list: [] }));
+    .catch(() => ({ classes: [], filters: {}, list: [], error: "当前源首页加载失败，请稍后重试或切换源" }));
 
   requests.set(key, request);
   void request.finally(() => requests.delete(key));

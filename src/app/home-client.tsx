@@ -43,7 +43,7 @@ const CHANNEL_LABEL: Record<string, string> = {
 export function HomeClient() {
   const params = useSearchParams();
   const { siteKey, siteOrigin, config, loading: cfgLoading, notice } = useConfig();
-  const { data: sourceHome } = useSourceHome(siteKey, siteOrigin);
+  const { data: sourceHome, loading: sourceHomeLoading } = useSourceHome(siteKey, siteOrigin);
   const classes = useMemo(() => sourceHome?.classes ?? [], [sourceHome]);
   const filters = useMemo(() => sourceHome?.filters ?? {}, [sourceHome]);
   const sourceHomeList = useMemo(() => sourceHome?.list ?? [], [sourceHome]);
@@ -67,7 +67,7 @@ export function HomeClient() {
 
   /** 聚合首页: 启用配置中的 CMS 源并行拉取去重, 未选分类时展示 */
   useEffect(() => {
-    const cmsSites = (config?.sites ?? []).filter((s) => (s.type === 0 || s.type === 4) && s.searchable !== 0).slice(0, 8);
+    const cmsSites = (config?.sites ?? []).filter((s) => s.type === 0 || s.type === 4).slice(0, 8);
     if (!config?.remote || !cmsSites.length) return;
     let cancelled = false;
     fetch("/api/home/aggregate", {
@@ -121,8 +121,9 @@ export function HomeClient() {
   const visible = useMemo(() => {
     const seen = new Set<string>();
     return (tid ? list : [...homeList, ...list]).filter((item) => {
-      if (seen.has(item.vod_id)) return false;
-      seen.add(item.vod_id);
+      const identity = `${item.sourceOrigin ?? ""}::${item.sourceKey ?? ""}::${item.vod_id}`;
+      if (seen.has(identity)) return false;
+      seen.add(identity);
       return true;
     });
   }, [tid, homeList, list]);
@@ -136,13 +137,23 @@ export function HomeClient() {
     () => Object.values(extend).filter(Boolean).length,
     [extend]
   );
+  const homeLoading = sourceHomeLoading || loading;
 
   const pick = useCallback((key: string, value: string) => {
     setPg(1);
     setExtend((previous) => ({ ...previous, [key]: value === "全部" ? "" : value }));
   }, []);
 
-  const byCategory = useCallback((name: string) => visible.filter((item) => item.category === name), [visible]);
+  const byChannel = useCallback(
+    (channel: keyof typeof CHANNEL_MATCH) =>
+      visible.filter((item) => CHANNEL_MATCH[channel].some((keyword) => item.category?.includes(keyword) ?? false)),
+    [visible]
+  );
+  const curatedCategories = useMemo(() => new Set(["电视剧", "电影", "动漫", "综艺", "纪录片"]), []);
+  const latestList = useMemo(
+    () => visible.filter((item) => item.category && !curatedCategories.has(item.category)),
+    [visible, curatedCategories]
+  );
 
   if (cfgLoading) {
     return (
@@ -174,10 +185,39 @@ export function HomeClient() {
     );
   }
 
+  if (!tid && !visible.length && homeLoading) {
+    return (
+      <div className="space-y-8">
+        <div className="flex flex-col gap-4 lg:flex-row lg:gap-5">
+          <div className="aspect-[16/11] min-h-[320px] w-full animate-pulse rounded-xl bg-cinema-panel sm:aspect-[16/7]" />
+          <div className="w-full space-y-3 rounded-xl bg-cinema-panel p-4 lg:w-[300px] xl:w-[320px]">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <div key={index} className="flex items-center gap-2.5">
+                <div className="h-[57px] w-10 shrink-0 animate-pulse rounded-sm bg-white/5" />
+                <div className="h-3 flex-1 animate-pulse rounded bg-white/5" />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
+          {Array.from({ length: 12 }).map((_, index) => (
+            <div key={index} className="space-y-2.5">
+              <div className="aspect-[2/3] animate-pulse rounded-xl bg-white/5" />
+              <div className="h-3.5 w-4/5 animate-pulse rounded bg-white/5" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       {notice ? (
         <div className="mb-4 rounded-xl border border-cinema-warning/25 bg-cinema-warning/10 px-4 py-3 text-xs text-cinema-warning">{notice}</div>
+      ) : null}
+      {sourceHome?.error ? (
+        <div className="mb-4 rounded-xl border border-cinema-warning/25 bg-cinema-warning/10 px-4 py-3 text-xs text-cinema-warning">{sourceHome.error}</div>
       ) : null}
 
       {!tid ? (
@@ -273,10 +313,11 @@ export function HomeClient() {
         </>
       ) : (
         <>
-          <VideoRow title="热播剧场" subtitle="连续剧 · 更新优先级最高" more="/?c=tv" list={byCategory("电视剧")} />
-          <VideoRow title="院线精选" subtitle="动作 / 科幻 / 喜剧大片" more="/?c=movie" list={byCategory("电影")} />
-          <VideoRow title="热血番剧" subtitle="国漫与动画新番" more="/?c=anime" list={byCategory("动漫")} />
-          <VideoRow title="综艺与纪实" subtitle="真人秀、音乐现场和世界视野" more="/?c=show" list={[...byCategory("综艺"), ...byCategory("纪录片")]} />
+          <VideoRow title="热播剧场" subtitle="连续剧 · 更新优先级最高" more="/?c=tv" list={byChannel("tv")} />
+          <VideoRow title="院线精选" subtitle="动作 / 科幻 / 喜剧大片" more="/?c=movie" list={byChannel("movie")} />
+          <VideoRow title="热血番剧" subtitle="国漫与动画新番" more="/?c=anime" list={byChannel("anime")} />
+          <VideoRow title="综艺与纪实" subtitle="真人秀、音乐现场和世界视野" more="/?c=show" list={[...byChannel("show"), ...byChannel("doc")]} />
+          <VideoRow title="当前源最新上线" subtitle="按源分类自动聚合 · 覆盖体育等特殊 CMS" list={latestList} />
         </>
       )}
     </>

@@ -1,4 +1,5 @@
 import { categories, videoDetails, videos } from "@/data/videos";
+import { relevanceScore } from "@/lib/search-text";
 import type { Spider, VodItem } from "@/lib/types";
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -61,14 +62,10 @@ export class DemoSpider implements Spider {
   }
 
   async searchContent(key: string) {
-    const k = key.trim().toLowerCase();
     return {
-      list: videos.filter(
-        (v) =>
-          v.vod_name.toLowerCase().includes(k) ||
-          v.category.toLowerCase().includes(k) ||
-          (v.actors ?? "").toLowerCase().includes(k)
-      ),
+      list: videos
+        .filter((v) => relevanceScore(`${v.vod_name}${v.category}${v.actors ?? ""}`, key) <= 4)
+        .sort((left, right) => relevanceScore(left.vod_name, key) - relevanceScore(right.vod_name, key)),
     };
   }
 

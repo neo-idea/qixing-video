@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { VideoCard } from "@/components/video-card";
 import { Button, Chip, EmptyState, LinkButton, Panel } from "@/components/ui";
+import { relevanceScore } from "@/lib/search-text";
 import { useConfig } from "@/lib/store";
 import type { SourceBean, VodItem } from "@/lib/types";
 
@@ -11,15 +12,6 @@ type Group = { site: SourceBean; list: VodItem[] };
 type SiteStatus = "searching" | "hit" | "empty" | "error";
 
 const SUGGESTIONS = ["繁花", "庆余年", "三体", "流浪地球", "狂飙", "漫长的季节"];
-
-function relevanceScore(item: VodItem, keyword: string) {
-  const name = item.vod_name.trim().toLowerCase();
-  const target = keyword.trim().toLowerCase();
-  if (name === target) return 0;
-  if (name.startsWith(target)) return 1;
-  if (name.includes(target)) return 2;
-  return 3;
-}
 
 export function SearchClient({ q }: { q: string }) {
   const router = useRouter();
@@ -39,11 +31,11 @@ export function SearchClient({ q }: { q: string }) {
     const ranked = groups.map((group) => ({
       ...group,
       list: [...group.list].sort((left, right) =>
-        relevanceScore(left, q) - relevanceScore(right, q) || Number(right.vod_score ?? 0) - Number(left.vod_score ?? 0)
+        relevanceScore(left.vod_name, q) - relevanceScore(right.vod_name, q) || Number(right.vod_score ?? 0) - Number(left.vod_score ?? 0)
       ),
     }));
     return ranked.sort((left, right) =>
-      relevanceScore(left.list[0], q) - relevanceScore(right.list[0], q) ||
+      relevanceScore(left.list[0].vod_name, q) - relevanceScore(right.list[0].vod_name, q) ||
       right.list.length - left.list.length ||
       left.site.name.localeCompare(right.site.name)
     );

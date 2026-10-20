@@ -1,4 +1,5 @@
 import type { Episode, Spider, VodDetail, VodItem } from "@/lib/types";
+import { relevanceScore, searchQueryVariants } from "@/lib/search-text";
 import { isDirectStream } from "./stream-url";
 
 /**
@@ -122,6 +123,10 @@ function toVodItem(v: CmsVod): VodItem {
   };
 }
 
+function withCategory(items: VodItem[], category: string): VodItem[] {
+  return items.map((item) => ({ ...item, category: item.category || category }));
+}
+
 /** `qiyi$$$youku` + `第1集$url#第2集$url$$$...` -> 播放组 */
 function parsePlaySources(v: CmsVod): { from: string[]; episodes: Episode[][] } {
   const from = (v.vod_play_from ?? "").split("$$$").filter(Boolean);
@@ -184,7 +189,21 @@ export class CmsSpider implements Spider {
         }
       }
     }
-    return { class: classes, list: (latest.list ?? []).map(toVodItem) };
+    let list = (latest.list ?? []).map(toVodItem);
+    if (!list.length && classes.length) {
+      const candidates = await Promise.all(
+        classes.slice(0, 8).map(async (item) => {
+          try {
+            const data = await this.request(`ac=${this.listAc}&t=${encodeURIComponent(item.type_id)}&pg=1`);
+            return withCategory((data.list ?? []).map(toVodItem), item.type_name);
+          } catch {
+            return [] as VodItem[];
+          }
+        })
+      );
+      list = candidates.find((items) => items.length) ?? [];
+    }
+    return { class: classes, list };
   }
 
   async homeVideoContent() {
@@ -217,12 +236,42 @@ export class CmsSpider implements Spider {
   }
 
   async searchContent(key: string) {
-    const data = await this.request(`ac=${this.listAc}&wd=${encodeURIComponent(key)}`);
-    const upstream = data as CmsResp & { code?: unknown; msg?: string };
-    if (!(data.list ?? []).length && upstream.code !== undefined && upstream.msg) {
-      throw new Error(upstream.msg);
+    let data: CmsResp | null = null;
+    for (const variant of searchQueryVariants(key)) {
+      try {
+        const result = await this.request(`ac=${this.listAc}&wd=${encodeURIComponent(variant)}`);
+        data = result;
+        if ((result.list ?? []).length) break;
+      } catch {
+        data ??= null;
+      }
     }
-    return { list: (data.list ?? []).map(toVodItem) };
+    if ((data?.list ?? []).length) return { list: (data!.list ?? []).map(toVodItem) };
+
+    const meta = await this.request("ac=list").catch(() => null);
+    const classes = (meta?.class ?? []).slice(0, 8);
+    const pages = await Promise.all(
+      classes.map(async (item) => {
+        try {
+          const page = await this.request(`ac=${this.listAc}&t=${encodeURIComponent(item.type_id)}&pg=1`);
+          return withCategory((page.list ?? []).map(toVodItem), item.type_name);
+        } catch {
+          return [] as VodItem[];
+        }
+      })
+    );
+    const seen = new Set<string>();
+    const list = pages
+      .flat()
+      .filter((item) => {
+        const name = item.vod_name.trim();
+        if (!name || seen.has(name)) return false;
+        seen.add(name);
+        return relevanceScore(name, key) <= 4;
+      })
+      .sort((left, right) => relevanceScore(left.vod_name, key) - relevanceScore(right.vod_name, key))
+      .slice(0, 30);
+    return { list };
   }
 
   /** id 格式与全站约定一致: `vodId|播放组序号|集序号`。
